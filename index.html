@@ -901,7 +901,13 @@
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
 
       if (error) {
-        alert('メールアドレスまたはパスワードを確認してください。');
+        const messages = {
+          email_not_confirmed: 'メールアドレスの確認が完了していません。確認メールのリンクを開いてください。',
+          invalid_credentials: 'メールアドレスまたはパスワードが一致しません。',
+          user_banned: 'このアカウントは利用できません。管理者にお問い合わせください。',
+          too_many_requests: '試行回数が多すぎます。しばらく待ってから再度お試しください。'
+        };
+        alert(messages[error.code] || `ログインできませんでした: ${error.message}`);
         return;
       }
 
@@ -913,7 +919,10 @@
 
       if (profileError || !user || user.deleted_at) {
         await supabaseClient.auth.signOut();
-        alert('プロフィールを確認できません。管理者にお問い合わせください。');
+        if (profileError) console.error('Profile lookup error:', profileError);
+        alert(profileError
+          ? `プロフィール取得に失敗しました: ${profileError.message}`
+          : 'プロフィールが見つからないか、削除済みです。管理者にお問い合わせください。');
         return;
       }
 
