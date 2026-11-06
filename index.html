@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>生徒会 案内箱</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .app-container {
+      max-width: 430px;
+      height: 100vh;
+      height: 100dvh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background-color: #1e293b;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+    /* 学年カラーシステム定義 */
+    .grade-border-1 { border-color: #3b82f6; } /* 1年: 青 */
+    .grade-border-2 { border-color: #22c55e; } /* 2年: 緑 */
+    .grade-border-3 { border-color: #ef4444; } /* 3年: 赤 */
+    .grade-border-admin { border-color: #a855f7; } /* 特権管理者/顧問: 紫 */
+
+    .grade-badge-1 { background-color: #1d4ed8; color: #ffffff; }
+    .grade-badge-2 { background-color: #15803d; color: #ffffff; }
+    .grade-badge-3 { background-color: #b91c1c; color: #ffffff; }
+    .grade-badge-admin { background-color: #7e22ce; color: #ffffff; }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+  <div class="app-container">
+
+    <div id="modal-confirm-delete" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
+      <form onsubmit="confirmDeleteUser(event)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-bold">管理者の再認証</h3>
+        <p class="text-xs text-slate-400">アカウントを削除状態にするには、管理者パスワードを入力してください。</p>
+        <input id="delete-confirm-password" type="password" autocomplete="current-password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm" placeholder="パスワード">
+        <div class="flex gap-2">
+          <button type="button" onclick="deleteTargetUserId=null; document.getElementById('modal-confirm-delete').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
+          <button type="submit" class="flex-1 py-2 bg-red-600 rounded-lg text-xs font-semibold">削除を実行</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="modal-edit-profile" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
+      <form onsubmit="saveProfile(event)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-bold">プロフィール編集</h3>
+        <label class="block text-xs text-slate-400">氏名
+          <input id="profile-edit-name" required maxlength="80" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs text-slate-400">組・役職
+          <input id="profile-edit-class" required maxlength="40" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs text-slate-400">プロフィール画像
+          <div class="mt-2 flex items-center gap-3">
+            <img id="profile-edit-avatar-preview" alt="" class="w-12 h-12 rounded-full object-cover bg-slate-800">
+            <input id="profile-edit-avatar-file" type="file" accept="image/*" onchange="previewAvatarFile(this, 'profile-edit-avatar-preview')" class="min-w-0 flex-1 text-xs text-slate-300">
+          </div>
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="document.getElementById('modal-edit-profile').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
+          <button type="submit" class="flex-1 py-2 bg-indigo-600 rounded-lg text-xs font-semibold">保存</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="modal-add-document" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
+      <form onsubmit="uploadDocument(event)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-bold">資料を追加</h3>
+        <label class="block text-xs text-slate-400">タイトル
+          <input id="document-title" required maxlength="120" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs text-slate-400">ファイル (25MBまで)
+          <input id="document-file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" required class="mt-1 block w-full text-xs text-slate-300">
+        </label>
+        <label class="block text-xs text-slate-400">閲覧できる人
+          <select id="document-access" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+            <option value="all">全校生徒</option>
+            <option value="officer">役員以上</option>
+            <option value="admin">管理者のみ</option>
+          </select>
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="document.getElementById('modal-add-document').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
+          <button type="submit" class="flex-1 py-2 bg-indigo-600 rounded-lg text-xs font-semibold">アップロード</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="modal-add-poll" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
+      <form onsubmit="createPoll(event)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-bold">投票を作成</h3>
+        <label class="block text-xs text-slate-400">件名
+          <input id="poll-title" required maxlength="160" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs text-slate-400">選択肢 (1行に1つ、2〜8件)
+          <textarea id="poll-options" required rows="5" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">賛成
+反対</textarea>
+        </label>
+        <label class="block text-xs text-slate-400">投票方式
+          <select id="poll-is-named" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+            <option value="false">無記名</option>
+            <option value="true">記名</option>
+          </select>
+        </label>
+        <label class="block text-xs text-slate-400">終了日時 (任意)
+          <input id="poll-ends-at" type="datetime-local" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="document.getElementById('modal-add-poll').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
+          <button type="submit" class="flex-1 py-2 bg-indigo-600 rounded-lg text-xs font-semibold">作成</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="modal-add-calendar-event" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
+      <form onsubmit="createCalendarEvent(event)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-bold">予定を追加</h3>
+        <label class="block text-xs text-slate-400">タイトル
+          <input id="calendar-event-title" required maxlength="120" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs text-slate-400">日付
+          <input id="calendar-event-date" type="date" required class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="block text-xs text-slate-400">開始
+            <input id="calendar-event-start" type="time" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+          </label>
+          <label class="block text-xs text-slate-400">終了
+            <input id="calendar-event-end" type="time" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+          </label>
+        </div>
+        <label class="block text-xs text-slate-400">メモ
+          <textarea id="calendar-event-description" maxlength="2000" rows="3" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm resize-none"></textarea>
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="document.getElementById('modal-add-calendar-event').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
+          <button type="submit" class="flex-1 py-2 bg-indigo-600 rounded-lg text-xs font-semibold">追加</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 簡易通知トースト -->
+    <div id="toast" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-4 py-2 rounded-full shadow-lg z-[90] flex items-center space-x-2 transition-all">
+      <i data-lucide="info" class="w-4 h-4"></i>
+      <span id="toast-msg">通知メッセージ</span>
+    </div>
+
+    <!-- ================= ========================== -->
+    <!-- 画面1: 認証選択（ログイン / アカウント作成）  -->
+    <!-- ================= ========================== -->
+    <section id="view-auth" class="flex-1 flex flex-col justify-between p-6 text-center z-40 bg-slate-900">
+      <div class="mt-12">
+        <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg mb-4">
+          <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+        </div>
+        <h1 class="text-2xl font-bold tracking-wide">生徒会ポータル</h1>
+        <p class="text-xs text-slate-400 mt-2">安全・円滑な学校情報プラットフォーム</p>
+      </div>
+
+      <div class="space-y-3 mb-6">
+        <button onclick="showLoginForm()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition shadow-lg shadow-indigo-500/25">
+          ログイン
+        </button>
+        <button onclick="showRegisterForm()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-sm border border-slate-700 transition">
+          アカウント新規作成
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= ========================== -->
+    <!-- 画面2: ログインフォーム                     -->
+    <!-- ================= ========================== -->
+    <section id="view-login" class="hidden flex-1 flex flex-col p-6 bg-slate-900 overflow-y-auto">
+      <div class="flex items-center mb-6">
+        <button onclick="showAuthSelection()" class="p-2 rounded-full hover:bg-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <h2 class="text-lg font-bold ml-2">ログイン</h2>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4 flex-1">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">メールアドレス</label>
+          <input type="email" id="login-email" autocomplete="email" required placeholder="name@example.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">パスワード</label>
+          <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <button type="submit" class="w-full mt-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition">
+          ログインして進む
+        </button>
+      </form>
+    </section>
+
+    <!-- ================= ========================== -->
+    <!-- 画面3: アカウント新規作成フォーム           -->
+    <!-- ================= ========================== -->
+    <section id="view-register" class="hidden flex-1 flex flex-col p-6 bg-slate-900 overflow-y-auto">
+      <div class="flex items-center mb-6">
+        <button onclick="showAuthSelection()" class="p-2 rounded-full hover:bg-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <h2 class="text-lg font-bold ml-2">アカウント作成</h2>
+      </div>
+
+      <form onsubmit="handleRegister(event)" class="space-y-4 flex-1">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">メールアドレス</label>
+          <input type="email" id="reg-email" autocomplete="email" required placeholder="name@example.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">氏名</label>
+          <input type="text" id="reg-name" required placeholder="例: 佐藤 健" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">学年</label>
+            <select id="reg-grade" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+              <option value="1">1年生 (青)</option>
+              <option value="2">2年生 (緑)</option>
+              <option value="3">3年生 (赤)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">組 / 役職</label>
+            <input type="text" id="reg-class" required placeholder="例: 1組 または 生徒会顧問" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">パスワード（8文字以上）</label>
+          <input type="password" id="reg-pass" autocomplete="new-password" minlength="8" required placeholder="8文字以上" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">プロフィール画像 (任意)</label>
+          <div class="flex items-center gap-3">
+            <img id="reg-avatar-preview" alt="" class="w-12 h-12 rounded-full object-cover bg-slate-800">
+            <input type="file" id="reg-avatar-file" accept="image/*" onchange="previewAvatarFile(this, 'reg-avatar-preview')" class="min-w-0 flex-1 text-xs text-slate-300">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full mt-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition">
+          登録を申請する
+        </button>
+      </form>
+    </section>
+
+    <!-- ================= ========================== -->
+    <!-- 画面4: 承認待ち待機画面 (オンボーディング)   -->
+    <!-- ================= ========================== -->
+    <section id="view-pending" class="hidden flex-1 flex flex-col p-6 bg-slate-900 justify-between">
+      <div class="text-center mt-6">
+        <div class="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
+          <i data-lucide="clock" class="w-8 h-8"></i>
+        </div>
+        <h2 class="text-xl font-bold">承認待ちです</h2>
+        <p class="text-xs text-slate-400 mt-2 px-4 leading-relaxed">
+          アカウント登録の申請が完了しました。<br>顧問の先生または特権管理者が承認するまでお待ちください。
+        </p>
+      </div>
+
+      <!-- オンボーディング ガイド -->
+      <div class="my-auto">
+        <div id="onboarding-slide-guide" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center space-x-2 text-indigo-400 font-semibold text-sm">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>アプリ利用ルールと機能ガイド</span>
+          </div>
+          <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
+            <li>フィードで案件募集やお知らせへの意見・いいねが可能です。</li>
+            <li>チャット機能では実名/匿名モードを自由に切替できます。</li>
+            <li>誹謗中傷対策のため、特権管理者は匿名の発言元を確認できます。</li>
+            <li>投票機能で全校議決や意見集約に参加できます。</li>
+          </ul>
+        </div>
+        <div id="onboarding-slide-privacy" class="hidden bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center space-x-2 text-emerald-400 font-semibold text-sm">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>利用規約・プライバシー</span>
+          </div>
+          <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
+            <li>他者への誹謗中傷、個人情報の投稿、目的外の利用は禁止です。</li>
+            <li>氏名・学年・組、投稿、投票、チャット、資料アクセスの記録を運用に必要な範囲で扱います。</li>
+            <li>匿名チャットも特権管理者は発言者を確認できます。完全な匿名ではありません。</li>
+            <li>削除したアカウントや投稿は一定期間、管理者が復元できる状態で保管されます。</li>
+          </ul>
+        </div>
+        <div class="flex items-center justify-between pt-3">
+          <button id="onboarding-previous" onclick="changeOnboardingSlide(-1)" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs">前へ</button>
+          <span id="onboarding-slide-count" class="text-[10px] text-slate-400">1 / 2</span>
+          <button id="onboarding-next" onclick="changeOnboardingSlide(1)" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs">次へ</button>
+        </div>
+      </div>
+
+      <button onclick="leavePendingView()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">
+        ログイン選択画面に戻る
+      </button>
+    </section>
+
+    <!-- ================= ========================== -->
+    <!-- メイン画面構造 (ログイン承認済みユーザー用)   -->
+    <!-- ================= ========================== -->
+    <main id="view-main" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+
+      <!-- 共通ヘッダー -->
+      <header class="h-14 px-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
+            <i data-lucide="shield" class="w-4 h-4 text-white"></i>
+          </div>
+          <span class="font-bold text-sm tracking-wide">生徒会ポータル</span>
+        </div>
+
+        <!-- ログインユーザープロフィール -->
+        <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('tab-admin')">
+          <div class="text-right">
+            <div id="header-user-name" class="text-xs font-semibold">---</div>
+            <div id="header-user-class" class="text-[10px] text-slate-400">---</div>
+          </div>
+          <div id="header-avatar-container" class="relative w-8 h-8 rounded-full border-2 p-0.5 grade-border-1">
+            <img id="header-avatar" src="" class="w-full h-full object-cover rounded-full bg-slate-800">
+          </div>
+        </div>
+      </header>
+
+      <!-- コンテンツエリア -->
+      <div class="flex-1 overflow-y-auto no-scrollbar relative bg-slate-900">
+
+        <!-- ================= タブ1: ホーム (フィード) ================= -->
+        <div id="tab-home" class="tab-content p-4 space-y-4">
+          <!-- 重要お知らせ枠 -->
+          <div id="pinned-notice-container" class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-3">
+            <div class="flex items-start space-x-3">
+              <i data-lucide="pin" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+              <div class="flex-1 text-xs">
+                <div class="flex justify-between font-bold text-amber-300 mb-0.5">
+                  <span id="notice-title">【重要】校内ポータル運用開始</span>
+                  <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded">お知らせ</span>
+                </div>
+                <p id="notice-content" class="text-slate-300 leading-relaxed">全校生徒および先生方へ：生徒会意見募集・投票・チャット機能の運用を開始しました。</p>
+                <div class="flex justify-between items-center mt-2">
+                  <span id="notice-read-state" class="text-[10px] text-amber-200"></span>
+                  <span id="notice-read-count" class="hidden text-[10px] text-amber-200"></span>
+                  <button id="notice-read-button" class="hidden text-[10px] underline" onclick="markNoticeRead()">既読にする</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 新規投稿作成フォーム -->
+          <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-slate-300">新しい提案・お知らせを投稿</span>
+              <button onclick="submitNewPost()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition">投稿</button>
+            </div>
+            <label id="pinned-post-control" class="hidden flex items-center gap-2 text-[11px] text-amber-300">
+              <input id="post-pinned-toggle" type="checkbox" class="accent-amber-500">
+              重要なお知らせとして固定
+            </label>
+            <input type="text" id="post-title-input" placeholder="タイトル" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
+            <textarea id="post-content-input" rows="2" placeholder="内容を入力してください..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+          </div>
+
+          <!-- 投稿フィードリスト -->
+          <div id="feed-posts-container" class="space-y-4">
+            <!-- JavaScriptで動的生成 -->
+          </div>
+        </div>
+
+        <!-- ================= タブ2: 議事録・ファイル ================= -->
+        <div id="tab-files" class="tab-content hidden p-4 space-y-3">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">共有資料・議事録</h3>
+            <button id="document-add-button" onclick="showAddDocumentModal()" class="hidden text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 追加
+            </button>
+          </div>
+
+          <div id="documents-list-container" class="space-y-3">
+            <!-- JavaScriptで動的生成 -->
+          </div>
+        </div>
+
+        <!-- ================= タブ3: 投票機能 ================= -->
+        <div id="tab-vote" class="tab-content hidden p-4 space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">進行中の決議・アンケート</h3>
+            <button id="poll-create-button" onclick="showAddPollModal()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" style="display:none">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 新規作成
+            </button>
+          </div>
+
+          <div id="polls-list-container" class="space-y-4">
+            <!-- JavaScriptで動的生成 -->
+          </div>
+        </div>
+
+        <div id="tab-calendar" class="tab-content hidden p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <button type="button" onclick="shiftCalendarWeek(-1)" aria-label="前の週" class="p-2 -ml-2 text-slate-300"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+            <div class="flex items-center gap-2">
+              <h3 id="calendar-week-label" class="text-sm font-semibold"></h3>
+              <button type="button" onclick="jumpCalendarToday()" class="text-xs text-indigo-300">今日</button>
+            </div>
+            <div class="flex items-center">
+              <button type="button" onclick="shiftCalendarWeek(1)" aria-label="次の週" class="p-2 text-slate-300"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+              <button id="calendar-add-button" type="button" onclick="showAddCalendarEventModal()" aria-label="予定を追加" class="hidden p-2 text-indigo-300"><i data-lucide="plus" class="w-5 h-5"></i></button>
+            </div>
+          </div>
+          <div id="calendar-week-days" class="grid grid-cols-7 border-y border-slate-800 py-2"></div>
+          <div class="flex items-center justify-between">
+            <h4 id="calendar-selected-label" class="text-xs font-semibold text-slate-200"></h4>
+            <span id="calendar-event-count" class="text-[10px] text-slate-500"></span>
+          </div>
+          <div id="calendar-events-list" class="divide-y divide-slate-800"></div>
+        </div>
+
+        <!-- ================= タブ4: チャット (DM風) ================= -->
+        <div id="tab-chat" class="tab-content hidden flex flex-col h-full bg-slate-900">
+          <!-- メッセージ表示領域 -->
+          <div id="chat-messages-container" class="flex-1 p-4 space-y-3 overflow-y-auto">
+            <!-- JavaScriptで動的生成 -->
+          </div>
+
+          <!-- メッセージ入力 & モード切替 -->
+          <div class="p-3 bg-slate-800 border-t border-slate-700/80 space-y-2 shrink-0">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[10px] text-slate-400 font-medium">発言表示モード:</span>
+              <div class="flex items-center space-x-2">
+                <span id="label-real" class="text-[10px] text-indigo-400 font-bold">実名モード</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="chat-anon-toggle" class="sr-only peer" onchange="toggleChatAnonLabel(this)">
+                  <div class="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+                <span id="label-anon" class="text-[10px] text-slate-500">匿名モード</span>
+              </div>
+            </div>
+
+            <form onsubmit="sendChatMessage(event)" class="flex items-center space-x-2">
+              <input type="text" id="chat-input-text" maxlength="4000" required placeholder="メッセージを入力..." class="flex-1 bg-slate-900 border border-slate-700 rounded-full px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
+              <button type="submit" class="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full transition">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= タブ5: マイページ / 管理者コントロールパネル ================= -->
+        <div id="tab-admin" class="tab-content hidden p-4 space-y-4">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">アカウント & システム管理</h3>
+            <span id="user-role-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold">一般生徒</span>
+          </div>
+
+          <!-- アカウント設定ダイアログ・情報 -->
+          <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-2">
+            <div class="flex justify-between items-center">
+              <div class="text-xs font-bold text-slate-200">ユーザー情報</div>
+              <button onclick="showProfileEditor()" aria-label="プロフィールを編集" class="text-indigo-300 text-xs">編集</button>
+            </div>
+            <div class="text-xs text-slate-300">氏名: <span id="mypage-name" class="font-semibold text-white">---</span></div>
+            <div class="text-xs text-slate-300">学年・組: <span id="mypage-class" class="font-semibold text-white">---</span></div>
+          </div>
+
+          <!-- 管理者限定セクション (承認待ち & アカウント管理 & 監査ログ) -->
+          <div id="admin-only-panel" class="space-y-4 hidden">
+
+            <!-- 新規登録承認待ち一覧 -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
+              <span class="text-xs font-bold flex items-center space-x-1 text-amber-400">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>新規登録の承認待ち生徒</span>
+              </span>
+              <div id="pending-users-list" class="space-y-2">
+                <!-- 動的表示 -->
+              </div>
+            </div>
+
+            <!-- アカウント一覧 & 削除 -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
+              <span class="text-xs font-bold flex items-center space-x-1 text-slate-300">
+                <i data-lucide="users" class="w-4 h-4 text-indigo-400"></i>
+                <span>登録済みアカウント管理</span>
+              </span>
+              <div id="approved-users-list" class="space-y-2">
+                <!-- 動的表示 -->
+              </div>
+            </div>
+
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
+              <span class="text-xs font-bold flex items-center space-x-1 text-slate-300">
+                <i data-lucide="archive-restore" class="w-4 h-4 text-amber-400"></i>
+                <span>削除済みアカウント</span>
+              </span>
+              <div id="deleted-users-list" class="space-y-2"></div>
+            </div>
+
+            <!-- 監査ログ -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
+              <span class="text-xs font-bold flex items-center space-x-1 text-slate-300">
+                <i data-lucide="archive-restore" class="w-4 h-4 text-amber-400"></i>
+                <span>削除済み案件</span>
+              </span>
+              <div id="deleted-posts-list" class="space-y-2"></div>
+            </div>
+
+            <!-- 監査ログ -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-2">
+              <span class="text-xs font-bold flex items-center space-x-1 text-emerald-400 mb-1">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                <span>セキュリティ監査ログ</span>
+              </span>
+              <div id="audit-log-container" class="text-[10px] text-slate-400 font-mono space-y-1 bg-slate-900/80 p-2.5 rounded-lg max-h-36 overflow-y-auto">
+                <!-- 動的ログメッセージ -->
+              </div>
+            </div>
+          </div>
+
+          <button onclick="handleLogout()" class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold rounded-xl text-xs transition">
+            ログアウト
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 下部ナビゲーションバー（5つのタブ） -->
+      <nav class="h-14 bg-slate-900 border-t border-slate-800 grid grid-cols-6 shrink-0 text-slate-400">
+        <button onclick="switchTab('tab-home')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 text-indigo-400" id="btn-tab-home">
+          <i data-lucide="home" class="w-5 h-5"></i>
+          <span class="text-[9px]">ホーム</span>
+        </button>
+        <button onclick="switchTab('tab-files')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-files">
+          <i data-lucide="folder" class="w-5 h-5"></i>
+          <span class="text-[9px]">資料</span>
+        </button>
+        <button onclick="switchTab('tab-vote')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-vote">
+          <i data-lucide="vote" class="w-5 h-5"></i>
+          <span class="text-[9px]">投票</span>
+        </button>
+        <button onclick="switchTab('tab-calendar')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-calendar">
+          <i data-lucide="calendar-days" class="w-5 h-5"></i>
+          <span class="text-[9px]">予定</span>
+        </button>
+        <button onclick="switchTab('tab-chat')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-chat">
+          <i data-lucide="message-circle" class="w-5 h-5"></i>
+          <span class="text-[9px]">チャット</span>
+        </button>
+        <button onclick="switchTab('tab-admin')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-admin">
+          <i data-lucide="user" class="w-5 h-5"></i>
+          <span class="text-[9px]">マイページ</span>
+        </button>
+      </nav>
+
+    </main>
+  </div>
+
+  <!-- JavaScript アプリケーションコアエンジン -->
+  <script>
+    /* ===================================================
+       1. Supabase クライアント初期化 & 状態データ管理
+       =================================================== */
+     // Supabase Dashboard > Project Settings > API: Project URL and anon/publishable key.
+     // Never put the service_role or secret key in this browser app.
+    const SUPABASE_URL = 'https://ocemedvogxfkfvnurvna.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_saK78DJPNLhf9YbKPtW1Yw_OKVxUMSB';
+    let supabaseClient = null;
+    let idleLogoutTimer = null;
+    let liveRefreshTimer = null;
+    let pendingStatusTimer = null;
+    let lastAccessCheck = 0;
+    let calendarSelectedDate = new Date();
+    let pendingAvatarFile = null;
+    const avatarUrlCache = new Map();
+
+    // ローカル状態管理用初期状態（Supabase未設定時のフォールバック用）
+    let state = {
+      currentUser: null,
+      posts: [],
+      polls: [],
+      messages: []
+    };
+
+    // Initialize Supabase when project settings are provided above.
+    function initSupabase() {
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          console.log("Supabase client initialized.");
+        } catch (e) {
+          console.error("Supabase init error:", e);
+        }
+      }
+    }
+
+    function previewAvatarFile(input, previewId) {
+      const preview = document.getElementById(previewId);
+      if (preview.dataset.previewUrl) URL.revokeObjectURL(preview.dataset.previewUrl);
+      const file = input.files[0];
+      if (!file) {
+        preview.removeAttribute('src');
+        delete preview.dataset.previewUrl;
+        return;
+      }
+      const previewUrl = URL.createObjectURL(file);
+      preview.dataset.previewUrl = previewUrl;
+      preview.src = previewUrl;
+    }
+
+    async function applyAvatarUrls(profiles) {
+      const paths = [...new Set(profiles.map(profile => profile?.avatar_path).filter(Boolean))];
+      const now = Date.now();
+      const missingPaths = paths.filter(path => !avatarUrlCache.has(path) || avatarUrlCache.get(path).expiresAt <= now);
+      if (missingPaths.length) {
+        const { data, error } = await supabaseClient.storage
+          .from('profile-avatars')
+          .createSignedUrls(missingPaths, 3600);
+        if (error) console.error('Avatar URL error:', error);
+        for (const signedUrl of data || []) {
+          if (signedUrl.signedUrl) {
+            avatarUrlCache.set(signedUrl.path, {
+              url: signedUrl.signedUrl,
+              expiresAt: now + 55 * 60 * 1000
+            });
+          }
+        }
+      }
+      for (const profile of profiles) {
+        if (profile?.avatar_path) {
+          profile.avatar_url = avatarUrlCache.get(profile.avatar_path)?.url || '';
+        }
+      }
+    }
+
+    async function uploadProfileAvatar(file) {
+      if (!file) return null;
+      const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
+      if (!supportedTypes.includes(file.type)) return 'JPG、PNG、WebP、GIF、HEIC形式の画像を選択してください';
+      if (file.size > 5 * 1024 * 1024) return '画像は5MB以下にしてください';
+
+      const profile = state.currentUser;
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${profile.id}/${crypto.randomUUID()}-${safeName}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from('profile-avatars')
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (uploadError) return `画像をアップロードできませんでした: ${uploadError.message}`;
+
+      const { data: updatedProfile, error: updateError } = await supabaseClient.from('profiles')
+        .update({ avatar_path: path, avatar_url: null })
+        .eq('id', profile.id)
+        .select('*')
+        .single();
+      if (updateError) {
+        await supabaseClient.storage.from('profile-avatars').remove([path]);
+        return `プロフィール画像を保存できませんでした: ${updateError.message}`;
+      }
+
+      state.currentUser = updatedProfile;
+      if (profile.avatar_path) {
+        avatarUrlCache.delete(profile.avatar_path);
+        await supabaseClient.storage.from('profile-avatars').remove([profile.avatar_path]);
+      }
+      return null;
+    }
+
+    async function addAuditLog(action, resourceType = null, resourceId = null) {
+      if (!supabaseClient || !state.currentUser) return;
+      const { error } = await supabaseClient.rpc('record_audit_event', {
+        event_action: action,
+        event_resource_type: resourceType,
+        event_resource_id: resourceId
+      });
+      if (error) console.error('Audit log error:', error);
+      if (['admin', 'superadmin'].includes(state.currentUser.role)) await renderAuditLogs();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function resetIdleLogoutTimer() {
+      if (!state.currentUser) return;
+      clearTimeout(idleLogoutTimer);
+      idleLogoutTimer = setTimeout(() => {
+        showToast('無操作が続いたためログアウトしました');
+        handleLogout();
+      }, 15 * 60 * 1000);
+    }
+
+    function registerActivity() {
+      resetIdleLogoutTimer();
+    }
+
+    ['pointerdown', 'keydown', 'touchstart'].forEach(eventName => {
+      document.addEventListener(eventName, registerActivity, { passive: true });
+    });
+
+    function startLiveRefresh() {
+      if (liveRefreshTimer) return;
+      liveRefreshTimer = setInterval(async () => {
+        if (!state.currentUser) return;
+        if (!(await verifyCurrentAccess())) return;
+        if (!document.getElementById('tab-home').classList.contains('hidden')) renderPosts();
+        if (!document.getElementById('tab-files').classList.contains('hidden')) renderDocuments();
+        if (!document.getElementById('tab-vote').classList.contains('hidden')) renderPolls();
+        if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
+        if (!document.getElementById('tab-chat').classList.contains('hidden')) renderChat();
+      }, 5000);
+    }
+
+    async function verifyCurrentAccess() {
+      if (Date.now() - lastAccessCheck < 15000) return true;
+      lastAccessCheck = Date.now();
+      const { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', state.currentUser.id)
+        .maybeSingle();
+      if (error) return true;
+
+      if (!profile || profile.status !== 'approved' || profile.deleted_at) {
+        state.currentUser = null;
+        clearTimeout(idleLogoutTimer);
+        await supabaseClient.auth.signOut();
+        showAuthSelection();
+        showToast('アカウントの利用権限が変更されたためログアウトしました');
+        return false;
+      }
+
+      const profileChanged = ['full_name', 'grade', 'class_name', 'avatar_url', 'avatar_path', 'role']
+        .some(key => profile[key] !== state.currentUser[key]);
+      state.currentUser = profile;
+      if (profileChanged) renderAppView();
+      return true;
+    }
+
+    /* ===================================================
+       2. UI表示制御
+       =================================================== */
+    function hideAllViews() {
+      document.getElementById('view-auth').classList.add('hidden');
+      document.getElementById('view-login').classList.add('hidden');
+      document.getElementById('view-register').classList.add('hidden');
+      document.getElementById('view-pending').classList.add('hidden');
+      document.getElementById('view-main').classList.add('hidden');
+    }
+
+    function showAuthSelection() {
+      hideAllViews();
+      document.getElementById('view-auth').classList.remove('hidden');
+    }
+
+    function showPendingView() {
+      hideAllViews();
+      document.getElementById('view-pending').classList.remove('hidden');
+      changeOnboardingSlide(0);
+      clearInterval(pendingStatusTimer);
+      pendingStatusTimer = setInterval(checkPendingSession, 5000);
+      checkPendingSession();
+    }
+
+    async function checkPendingSession() {
+      if (!supabaseClient) return;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return;
+
+      const { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      if (error) return;
+
+      if (!profile || profile.deleted_at || profile.status === 'rejected') {
+        clearInterval(pendingStatusTimer);
+        pendingStatusTimer = null;
+        await supabaseClient.auth.signOut();
+        showAuthSelection();
+        showToast('このアカウントは利用できません');
+        return;
+      }
+
+      if (profile.status === 'pending' && pendingAvatarFile) {
+        state.currentUser = profile;
+        const file = pendingAvatarFile;
+        pendingAvatarFile = null;
+        const avatarError = await uploadProfileAvatar(file);
+        if (avatarError) showToast(avatarError);
+      }
+
+      if (profile.status === 'approved') {
+        clearInterval(pendingStatusTimer);
+        pendingStatusTimer = null;
+        state.currentUser = profile;
+        if (pendingAvatarFile) {
+          const file = pendingAvatarFile;
+          pendingAvatarFile = null;
+          const avatarError = await uploadProfileAvatar(file);
+          if (avatarError) showToast(avatarError);
+        }
+        await addAuditLog('ログインしました');
+        renderAppView();
+      }
+    }
+
+    async function leavePendingView() {
+      clearInterval(pendingStatusTimer);
+      pendingStatusTimer = null;
+      pendingAvatarFile = null;
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      showAuthSelection();
+    }
+
+    function showLoginForm() {
+      hideAllViews();
+      document.getElementById('view-login').classList.remove('hidden');
+    }
+
+    function showRegisterForm() {
+      hideAllViews();
+      document.getElementById('view-register').classList.remove('hidden');
+    }
+
+    let onboardingSlide = 0;
+
+    function changeOnboardingSlide(direction) {
+      onboardingSlide = Math.max(0, Math.min(1, onboardingSlide + direction));
+      document.getElementById('onboarding-slide-guide').classList.toggle('hidden', onboardingSlide !== 0);
+      document.getElementById('onboarding-slide-privacy').classList.toggle('hidden', onboardingSlide !== 1);
+      document.getElementById('onboarding-slide-count').textContent = `${onboardingSlide + 1} / 2`;
+      document.getElementById('onboarding-previous').disabled = onboardingSlide === 0;
+      document.getElementById('onboarding-next').disabled = onboardingSlide === 1;
+    }
+
+    /* ===================================================
+       3. 認証＆アカウント管理
+       =================================================== */
+    async function handleRegister(e) {
+      e.preventDefault();
+      if (!supabaseClient) {
+        alert('SupabaseのURLと公開鍵をコードに設定してください。');
+        return;
+      }
+
+      const email = document.getElementById('reg-email').value.trim();
+      const name = document.getElementById('reg-name').value.trim();
+      const grade = document.getElementById('reg-grade').value;
+      const className = document.getElementById('reg-class').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      pendingAvatarFile = document.getElementById('reg-avatar-file').files[0] || null;
+
+      const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name, grade, class_name: className }
+        }
+      });
+
+      if (error) {
+        pendingAvatarFile = null;
+        alert(`登録できませんでした: ${error.message}`);
+        return;
+      }
+
+      showPendingView();
+      showToast('登録の申請を送信しました');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      if (!supabaseClient) {
+        alert('SupabaseのURLと公開鍵をコードに設定してください。');
+        return;
+      }
+
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+
+      if (error) {
+        alert('メールアドレスまたはパスワードを確認してください。');
+        return;
+      }
+
+      const { data: user, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profileError || !user || user.deleted_at) {
+        await supabaseClient.auth.signOut();
+        alert('プロフィールを確認できません。管理者にお問い合わせください。');
+        return;
+      }
+
+      if (user.status === 'pending') {
+        showPendingView();
+        return;
+      }
+
+      if (user.status !== 'approved') {
+        await supabaseClient.auth.signOut();
+        alert('このアカウントは管理者により承認が却下されています。');
+        return;
+      }
+
+      state.currentUser = user;
+      await addAuditLog('ログインしました');
+      renderAppView();
+    }
+
+    async function handleLogout() {
+      if (state.currentUser) {
+        await addAuditLog('ログアウトしました');
+      }
+      clearTimeout(idleLogoutTimer);
+      idleLogoutTimer = null;
+      pendingAvatarFile = null;
+      state.currentUser = null;
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      showAuthSelection();
+    }
+
+    /* ===================================================
+       4. メイン画面の動的表示＆描画
+       =================================================== */
+    async function renderAppView() {
+      hideAllViews();
+      document.getElementById('view-main').classList.remove('hidden');
+      resetIdleLogoutTimer();
+      startLiveRefresh();
+
+      const user = state.currentUser;
+      await applyAvatarUrls([user]);
+
+      // ヘッダー情報設定
+      document.getElementById('header-user-name').textContent = user.full_name;
+      document.getElementById('header-user-class').textContent = user.grade === 'admin' ? user.class_name : `${user.grade}年 ${user.class_name}`;
+      document.getElementById('header-avatar').src = safeImageUrl(user.avatar_url);
+
+      // 学年枠線スタイル適用
+      const avatarContainer = document.getElementById('header-avatar-container');
+      avatarContainer.className = `relative w-8 h-8 rounded-full border-2 p-0.5 grade-border-${user.grade}`;
+
+      // マイページ情報
+      document.getElementById('mypage-name').textContent = user.full_name;
+      document.getElementById('mypage-class').textContent = user.grade === 'admin' ? user.class_name : `${user.grade}年 ${user.class_name}`;
+
+      const roleBadge = document.getElementById('user-role-badge');
+      if (['admin', 'superadmin'].includes(user.role)) {
+        roleBadge.textContent = user.role === 'superadmin' ? '特権管理者 (顧問)' : '管理者 (生徒会役員)';
+        roleBadge.className = 'text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-full font-semibold';
+        document.getElementById('admin-only-panel').classList.remove('hidden');
+      } else {
+        roleBadge.textContent = user.role === 'officer' ? '生徒会役員' : '一般生徒';
+        roleBadge.className = 'text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold';
+        document.getElementById('admin-only-panel').classList.add('hidden');
+      }
+      document.getElementById('pinned-post-control').classList.toggle('hidden', !['admin', 'superadmin'].includes(user.role));
+      const canManage = ['admin', 'superadmin'].includes(user.role);
+      document.getElementById('document-add-button').style.display = canManage ? 'flex' : 'none';
+      document.getElementById('poll-create-button').style.display = ['officer', 'admin', 'superadmin'].includes(user.role) ? 'flex' : 'none';
+
+      // 全各機能のレンダー
+      renderPosts();
+      renderDocuments();
+      renderPolls();
+      renderCalendar();
+      renderChat();
+      renderAdminPanel();
+      renderAuditLogs();
+
+      switchTab('tab-home');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.replace('text-indigo-400', 'text-slate-400'));
+      const activeBtn = document.getElementById(`btn-${tabId}`);
+      if (activeBtn) activeBtn.classList.replace('text-slate-400', 'text-indigo-400');
+    }
+
+    function showProfileEditor() {
+      document.getElementById('profile-edit-name').value = state.currentUser.full_name || '';
+      document.getElementById('profile-edit-class').value = state.currentUser.class_name || '';
+      document.getElementById('profile-edit-avatar-file').value = '';
+      document.getElementById('profile-edit-avatar-preview').src = document.getElementById('header-avatar').src;
+      document.getElementById('modal-edit-profile').classList.remove('hidden');
+    }
+
+    async function saveProfile(event) {
+      event.preventDefault();
+      const updates = {
+        full_name: document.getElementById('profile-edit-name').value.trim(),
+        class_name: document.getElementById('profile-edit-class').value.trim()
+      };
+      const { data: profile, error } = await supabaseClient.from('profiles')
+        .update(updates)
+        .eq('id', state.currentUser.id)
+        .select('*')
+        .single();
+      if (error) return showToast(`プロフィールを保存できませんでした: ${error.message}`);
+
+      state.currentUser = profile;
+      const avatarFile = document.getElementById('profile-edit-avatar-file').files[0];
+      const avatarError = await uploadProfileAvatar(avatarFile);
+      document.getElementById('modal-edit-profile').classList.add('hidden');
+      await addAuditLog('プロフィールを更新しました', 'profile', profile.id);
+      await renderAppView();
+      showToast(avatarError || 'プロフィールを保存しました');
+    }
+
+    /* ===================================================
+       5. 各モジュール機能（投稿、書類、投票、チャット、管理）
+       =================================================== */
+
+    // --- 投稿機能 ---
+    async function submitNewPost() {
+      const title = document.getElementById('post-title-input').value.trim();
+      const content = document.getElementById('post-content-input').value.trim();
+      if(!title || !content) return;
+
+      const isPinned = document.getElementById('post-pinned-toggle').checked;
+      if (isPinned) {
+        const { error: unpinError } = await supabaseClient.from('posts')
+          .update({ is_pinned: false })
+          .eq('is_pinned', true)
+          .is('deleted_at', null);
+        if (unpinError) return showToast(`重要告知を更新できませんでした: ${unpinError.message}`);
+      }
+
+      const { error } = await supabaseClient.from('posts').insert({
+        author_id: state.currentUser.id,
+        title,
+        content,
+        is_pinned: isPinned
+      });
+      if (error) return showToast(`投稿できませんでした: ${error.message}`);
+
+      document.getElementById('post-title-input').value = '';
+      document.getElementById('post-content-input').value = '';
+      document.getElementById('post-pinned-toggle').checked = false;
+      await renderPosts();
+      await addAuditLog('投稿を作成しました', 'post');
+      showToast('投稿を作成しました');
+    }
+
+    async function toggleLike(postId) {
+      const post = state.posts.find(p => p.id === postId);
+      if(!post) return;
+      const userId = state.currentUser.id;
+      let request;
+      if (post.likedBy.includes(userId)) {
+        request = supabaseClient.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
+      } else {
+        request = supabaseClient.from('post_likes').insert({ post_id: postId, user_id: userId });
+      }
+      const { error } = await request;
+      if (error) return showToast(`賛同を更新できませんでした: ${error.message}`);
+      await renderPosts();
+    }
+
+    async function submitComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const content = input.value.trim();
+      if (!content) return;
+
+      const { error } = await supabaseClient.from('post_comments').insert({
+        post_id: postId,
+        author_id: state.currentUser.id,
+        content
+      });
+      if (error) return showToast(`コメントできませんでした: ${error.message}`);
+      await addAuditLog('投稿にコメントしました', 'post', postId);
+      await renderPosts();
+    }
+
+    async function softDeletePost(postId) {
+      if (!confirm('この案件を削除状態にしますか？')) return;
+      const { error } = await supabaseClient.from('posts')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', postId);
+      if (error) return showToast(`削除できませんでした: ${error.message}`);
+      await addAuditLog('案件を削除状態にしました', 'post', postId);
+      await renderPosts();
+      await renderAdminPanel();
+    }
+
+    async function restorePost(postId) {
+      const { error } = await supabaseClient.from('posts')
+        .update({ deleted_at: null })
+        .eq('id', postId);
+      if (error) return showToast(`復元できませんでした: ${error.message}`);
+      await addAuditLog('案件を復元しました', 'post', postId);
+      await renderPosts();
+      await renderAdminPanel();
+    }
+
+    async function markNoticeRead() {
+      const pinnedPost = state.posts.find(post => post.is_pinned);
+      if (!pinnedPost) return;
+      const { error } = await supabaseClient.from('post_reads').insert({
+        post_id: pinnedPost.id,
+        user_id: state.currentUser.id
+      });
+      if (error) return showToast(`既読を記録できませんでした: ${error.message}`);
+      await renderPosts();
+    }
+
+    async function renderPosts() {
+      const container = document.getElementById('feed-posts-container');
+      const { data, error } = await supabaseClient
+        .from('posts')
+        .select(`id, title, content, is_pinned, created_at,
+          author:profiles!posts_author_id_fkey(id, full_name, grade, class_name, avatar_url, avatar_path),
+          likes:post_likes(user_id),
+          comments:post_comments(id, content, created_at, author:profiles!post_comments_author_id_fkey(full_name, grade, avatar_url, avatar_path)) ,
+          reads:post_reads(user_id)`)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+      if (error) {
+        container.innerHTML = `<div class="text-center text-xs text-rose-300 py-6">フィードを読み込めませんでした</div>`;
+        return;
+      }
+
+      const avatarProfiles = data.flatMap(post => [post.author, ...(post.comments || []).map(comment => comment.author)]).filter(Boolean);
+      await applyAvatarUrls(avatarProfiles);
+
+      state.posts = data.map(post => ({
+        ...post,
+        author: post.author || { full_name: '削除済みユーザー', grade: '1', avatar_url: '' },
+        likes: post.likes.length,
+        likedBy: post.likes.map(like => like.user_id),
+        comments: post.comments || [],
+        createdAt: new Date(post.created_at).toLocaleString()
+      }));
+
+      const pinnedPost = state.posts.find(post => post.is_pinned);
+      const notice = document.getElementById('pinned-notice-container');
+      const readState = document.getElementById('notice-read-state');
+      const readCount = document.getElementById('notice-read-count');
+      const readButton = document.getElementById('notice-read-button');
+      if (pinnedPost) {
+        notice.classList.remove('hidden');
+        document.getElementById('notice-title').textContent = pinnedPost.title;
+        document.getElementById('notice-content').textContent = pinnedPost.content;
+        const hasRead = pinnedPost.reads.some(read => read.user_id === state.currentUser.id);
+        readState.textContent = hasRead ? '既読' : '未読';
+        const isAdmin = ['admin', 'superadmin'].includes(state.currentUser.role);
+        readCount.classList.toggle('hidden', !isAdmin);
+        readCount.textContent = isAdmin ? `既読 ${pinnedPost.reads.length}人` : '';
+        readButton.classList.toggle('hidden', hasRead);
+      } else {
+        notice.classList.add('hidden');
+      }
+
+      if (state.posts.length === 0) {
+        container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">投稿がまだありません</div>`;
+        return;
+      }
+
+      container.innerHTML = state.posts.map(post => `
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden">
+          <div class="p-3 flex items-center justify-between border-b border-slate-700/40">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-full border-2 grade-border-${post.author.grade} p-0.5">
+                <img src="${escapeHtml(safeImageUrl(post.author.avatar_url))}" class="w-full h-full object-cover rounded-full">
+              </div>
+              <div>
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-xs font-bold">${escapeHtml(post.author.full_name)}</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded grade-badge-${post.author.grade}">${post.author.grade === 'admin' ? '顧問' : post.author.grade + '年'}</span>
+                </div>
+                <span class="text-[9px] text-slate-400">${post.createdAt}</span>
+              </div>
+            </div>
+            ${['admin', 'superadmin'].includes(state.currentUser.role) ? `<button onclick="softDeletePost('${post.id}')" aria-label="案件を削除" class="text-slate-400 hover:text-red-400"><i data-lucide="archive-x" class="w-4 h-4"></i></button>` : ''}
+          </div>
+          <div class="p-3 text-xs leading-relaxed space-y-1">
+            <p class="font-semibold text-indigo-300">${escapeHtml(post.title)}</p>
+            <p class="text-slate-300">${escapeHtml(post.content)}</p>
+          </div>
+          <div class="px-3 py-2 border-t border-slate-700/40 flex items-center justify-between text-xs text-slate-400">
+            <button onclick="toggleLike('${post.id}')" class="flex items-center space-x-1 hover:text-pink-500 transition ${post.likedBy.includes(state.currentUser.id) ? 'text-pink-500 font-bold' : ''}">
+              <i data-lucide="heart" class="w-4 h-4"></i>
+              <span>${post.likes} 賛同</span>
+            </button>
+          </div>
+          <div class="px-3 pb-3 space-y-2">
+            ${post.comments.map(comment => `<p class="text-[11px] text-slate-300"><span class="font-semibold">${escapeHtml(comment.author?.full_name || 'ユーザー')}:</span> ${escapeHtml(comment.content)}</p>`).join('')}
+            <form onsubmit="event.preventDefault(); submitComment('${post.id}')" class="flex gap-2">
+              <input id="comment-input-${post.id}" maxlength="1000" required placeholder="意見をコメント" class="min-w-0 flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px]">
+              <button class="text-[11px] text-indigo-300">送信</button>
+            </form>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // --- 共有資料機能 ---
+    function showAddDocumentModal() {
+      document.getElementById('document-title').value = '';
+      document.getElementById('document-file').value = '';
+      document.getElementById('document-access').value = 'all';
+      document.getElementById('modal-add-document').classList.remove('hidden');
+    }
+
+    async function uploadDocument(event) {
+      event.preventDefault();
+      const file = document.getElementById('document-file').files[0];
+      if (!file) return;
+      if (file.size > 25 * 1024 * 1024) {
+        showToast('ファイルは25MB以下にしてください');
+        return;
+      }
+      const title = document.getElementById('document-title').value.trim();
+      const access = document.getElementById('document-access').value;
+
+      const storagePath = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from('meeting-files')
+        .upload(storagePath, file, { upsert: false });
+      if (uploadError) return showToast(`アップロードできませんでした: ${uploadError.message}`);
+
+      const { error } = await supabaseClient.from('documents').insert({
+        title: title.trim(),
+        storage_path: storagePath,
+        access_role: access,
+        created_by: state.currentUser.id
+      });
+      if (error) {
+        await supabaseClient.storage.from('meeting-files').remove([storagePath]);
+        return showToast(`資料を登録できませんでした: ${error.message}`);
+      }
+
+      await addAuditLog('資料を追加しました', 'document', storagePath);
+      document.getElementById('modal-add-document').classList.add('hidden');
+      event.currentTarget.reset();
+      await renderDocuments();
+      showToast('資料をアップロードしました');
+    }
+
+    async function downloadDocument(storagePath) {
+      const { data, error } = await supabaseClient.storage
+        .from('meeting-files')
+        .createSignedUrl(storagePath, 60);
+      if (error) return showToast(`ダウンロードできませんでした: ${error.message}`);
+      await addAuditLog('資料を閲覧しました', 'document', storagePath);
+      window.open(data.signedUrl, '_blank', 'noopener');
+    }
+
+    async function renderDocuments() {
+      const container = document.getElementById('documents-list-container');
+      const { data: documents, error } = await supabaseClient
+        .from('documents')
+        .select('id, title, storage_path, access_role, created_at')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+      if (error) {
+        container.innerHTML = `<div class="text-center text-xs text-rose-300 py-6">資料を読み込めませんでした</div>`;
+        return;
+      }
+      if (!documents.length) {
+        container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">共有資料はありません</div>`;
+        return;
+      }
+
+      container.innerHTML = documents.map(doc => `
+          <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold">${escapeHtml(doc.title)}</div>
+                <div class="text-[10px] text-slate-400">${new Date(doc.created_at).toLocaleDateString()} • ${doc.access_role === 'all' ? '全校公開' : doc.access_role === 'officer' ? '役員限定' : '管理者限定'}</div>
+              </div>
+            </div>
+            <button type="button" data-document-path="${escapeHtml(doc.storage_path)}" aria-label="資料をダウンロード" class="p-1.5 hover:bg-slate-700 rounded-lg text-slate-300">
+              <i data-lucide="download" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      container.querySelectorAll('[data-document-path]').forEach(button => {
+        button.addEventListener('click', () => downloadDocument(button.dataset.documentPath));
+      });
+      lucide.createIcons();
+    }
+
+    // --- 投票機能 ---
+    function showAddPollModal() {
+      document.getElementById('poll-title').value = '';
+      document.getElementById('poll-options').value = '賛成\n反対';
+      document.getElementById('poll-is-named').value = 'false';
+      document.getElementById('poll-ends-at').value = '';
+      document.getElementById('modal-add-poll').classList.remove('hidden');
+    }
+
+    async function createPoll(event) {
+      event.preventDefault();
+      const title = document.getElementById('poll-title').value.trim();
+      const options = document.getElementById('poll-options').value
+        .split('\n').map(option => option.trim()).filter(Boolean);
+      if (options.length < 2 || options.length > 8) return showToast('選択肢は2〜8件にしてください');
+      const isNamed = document.getElementById('poll-is-named').value === 'true';
+      const endDate = document.getElementById('poll-ends-at').value;
+      const endsAt = endDate ? new Date(endDate) : null;
+      if (endsAt && !Number.isFinite(endsAt.getTime())) return showToast('終了日時が正しくありません');
+
+      const { data: poll, error } = await supabaseClient.from('polls').insert({
+        created_by: state.currentUser.id,
+        title: title.trim(),
+        is_named: isNamed,
+        ends_at: endsAt?.toISOString() || null
+      }).select('id').single();
+      if (error) return showToast(`投票を作成できませんでした: ${error.message}`);
+
+      const { error: optionsError } = await supabaseClient.from('poll_options').insert(
+        options.map((label, index) => ({ poll_id: poll.id, label, sort_order: index }))
+      );
+      if (optionsError) {
+        await supabaseClient.from('polls').update({ deleted_at: new Date().toISOString() }).eq('id', poll.id);
+        return showToast(`選択肢を登録できませんでした: ${optionsError.message}`);
+      }
+
+      await addAuditLog('投票を作成しました', 'poll', poll.id);
+  document.getElementById('modal-add-poll').classList.add('hidden');
+  event.currentTarget.reset();
+      await renderPolls();
+      showToast('新しい投票を作成しました');
+    }
+
+    async function castVote(pollId, optionId) {
+      const { error } = await supabaseClient.from('poll_votes').insert({
+        poll_id: pollId,
+        option_id: optionId,
+        user_id: state.currentUser.id
+      });
+      if (error) return showToast(error.code === '23505' ? 'この投票には投票済みです' : `投票できませんでした: ${error.message}`);
+      await addAuditLog('投票に参加しました', 'poll', pollId);
+      await renderPolls();
+    }
+
+    async function renderPolls() {
+      const container = document.getElementById('polls-list-container');
+      const [{ data: polls, error: pollsError }, { data: results, error: resultsError }] = await Promise.all([
+        supabaseClient.from('polls')
+          .select('id, title, is_named, starts_at, ends_at, options:poll_options(id, label, sort_order), votes:poll_votes(user_id, user:profiles!poll_votes_user_id_fkey(full_name))')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false }),
+        supabaseClient.from('poll_results').select('*')
+      ]);
+      if (pollsError || resultsError) {
+        container.innerHTML = `<div class="text-center text-xs text-rose-300 py-6">投票を読み込めませんでした</div>`;
+        return;
+      }
+      state.polls = polls.map(poll => ({
+        ...poll,
+        options: (poll.options || []).map(option => ({
+          ...option,
+          votes: Number(results.find(result => result.option_id === option.id)?.vote_count || 0)
+        })),
+        votedUserIds: (poll.votes || []).map(vote => vote.user_id)
+      }));
+
+      if (state.polls.length === 0) {
+        container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">現在行われている投票はありません</div>`;
+        return;
+      }
+
+      container.innerHTML = state.polls.map(poll => {
+        const totalVotes = poll.options.reduce((acc, o) => acc + o.votes, 0);
+        const hasVoted = poll.votedUserIds.includes(state.currentUser.id);
+        const isOpen = new Date(poll.starts_at) <= new Date() && (!poll.ends_at || new Date(poll.ends_at) > new Date());
+
+        return `
+          <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">${poll.is_named ? '記名投票' : '無記名投票'}</span>
+              <span class="text-[10px] text-slate-400">総投票数: ${totalVotes}票</span>
+            </div>
+            <div class="text-xs font-bold text-slate-100">${escapeHtml(poll.title)}</div>
+            ${poll.ends_at ? `<div class="text-[10px] text-slate-400">終了: ${new Date(poll.ends_at).toLocaleString()}</div>` : ''}
+
+            <div class="space-y-2 pt-1">
+              ${poll.options.map(opt => {
+                const percent = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+                return `
+                  <button onclick="castVote('${poll.id}', '${opt.id}')" ${hasVoted || !isOpen ? 'disabled' : ''} class="w-full relative overflow-hidden py-2 px-3 bg-slate-900 border border-slate-700 rounded-lg text-xs font-medium text-left flex justify-between items-center ${hasVoted || !isOpen ? 'cursor-default' : 'hover:border-indigo-500'}">
+                    <div class="absolute inset-0 bg-indigo-600/30 transition-all duration-500" style="width: ${percent}%"></div>
+                    <span class="relative z-10">${escapeHtml(opt.label)}</span>
+                    <span class="relative z-10 text-[11px] font-bold text-indigo-300">${percent}% (${opt.votes}票)</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            ${poll.is_named && poll.votes.length ? `<div class="text-[10px] text-slate-400">投票者: ${poll.votes.map(vote => escapeHtml(vote.user?.full_name || '利用者')).join('、')}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function calendarDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function calendarWeekStart(date) {
+      const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+      return start;
+    }
+
+    function shiftCalendarWeek(direction) {
+      calendarSelectedDate.setDate(calendarSelectedDate.getDate() + direction * 7);
+      renderCalendar();
+    }
+
+    function jumpCalendarToday() {
+      calendarSelectedDate = new Date();
+      renderCalendar();
+    }
+
+    function showAddCalendarEventModal() {
+      document.getElementById('calendar-event-title').value = '';
+      document.getElementById('calendar-event-date').value = calendarDateKey(calendarSelectedDate);
+      document.getElementById('calendar-event-start').value = '';
+      document.getElementById('calendar-event-end').value = '';
+      document.getElementById('calendar-event-description').value = '';
+      document.getElementById('modal-add-calendar-event').classList.remove('hidden');
+    }
+
+    async function createCalendarEvent(event) {
+      event.preventDefault();
+      const title = document.getElementById('calendar-event-title').value.trim();
+      const date = document.getElementById('calendar-event-date').value;
+      const startTime = document.getElementById('calendar-event-start').value;
+      const endTime = document.getElementById('calendar-event-end').value;
+      const startsAt = new Date(`${date}T${startTime || '00:00'}`);
+      const endsAt = endTime ? new Date(`${date}T${endTime}`) : null;
+      if (!title || !date || !Number.isFinite(startsAt.getTime())) return;
+      if (endsAt && (!Number.isFinite(endsAt.getTime()) || endsAt <= startsAt)) {
+        return showToast('終了時刻を開始時刻より後にしてください');
+      }
+
+      const { error } = await supabaseClient.from('calendar_events').insert({
+        title,
+        description: document.getElementById('calendar-event-description').value.trim(),
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt?.toISOString() || null,
+        created_by: state.currentUser.id
+      });
+      if (error) return showToast(`予定を追加できませんでした: ${error.message}`);
+
+      document.getElementById('modal-add-calendar-event').classList.add('hidden');
+      event.currentTarget.reset();
+      calendarSelectedDate = new Date(`${date}T12:00:00`);
+      await renderCalendar();
+      showToast('予定を追加しました');
+    }
+
+    async function deleteCalendarEvent(eventId) {
+      if (!confirm('この予定を削除しますか？')) return;
+      const { error } = await supabaseClient.from('calendar_events')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', eventId);
+      if (error) return showToast(`予定を削除できませんでした: ${error.message}`);
+      await renderCalendar();
+    }
+
+    async function renderCalendar() {
+      const weekDaysContainer = document.getElementById('calendar-week-days');
+      const eventsContainer = document.getElementById('calendar-events-list');
+      if (!supabaseClient || !state.currentUser) return;
+
+      const weekStart = calendarWeekStart(calendarSelectedDate);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      const dateFormatter = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric' });
+      const startLabel = dateFormatter.format(weekStart);
+      const endLabel = dateFormatter.format(new Date(weekEnd.getTime() - 86400000));
+      document.getElementById('calendar-week-label').textContent = `${startLabel} - ${endLabel}`;
+      document.getElementById('calendar-selected-label').textContent = new Intl.DateTimeFormat('ja-JP', {
+        month: 'long', day: 'numeric', weekday: 'long'
+      }).format(calendarSelectedDate);
+      document.getElementById('calendar-add-button').classList.toggle('hidden',
+        !['officer', 'admin', 'superadmin'].includes(state.currentUser.role));
+
+      const { data: events, error } = await supabaseClient.from('calendar_events')
+        .select('id, title, description, starts_at, ends_at, created_by, creator:profiles!calendar_events_created_by_fkey(full_name, grade)')
+        .is('deleted_at', null)
+        .gte('starts_at', weekStart.toISOString())
+        .lt('starts_at', weekEnd.toISOString())
+        .order('starts_at', { ascending: true });
+      if (error) {
+        weekDaysContainer.innerHTML = '';
+        eventsContainer.innerHTML = '<div class="py-8 text-center text-xs text-rose-300">予定を読み込めませんでした</div>';
+        return;
+      }
+
+      const eventsByDate = new Map();
+      events.forEach(calendarEvent => {
+        const key = calendarDateKey(new Date(calendarEvent.starts_at));
+        eventsByDate.set(key, (eventsByDate.get(key) || 0) + 1);
+      });
+      const todayKey = calendarDateKey(new Date());
+      const selectedKey = calendarDateKey(calendarSelectedDate);
+      weekDaysContainer.innerHTML = Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + index);
+        const key = calendarDateKey(date);
+        const weekday = new Intl.DateTimeFormat('ja-JP', { weekday: 'short' }).format(date);
+        const selected = key === selectedKey;
+        return `
+          <button type="button" onclick="selectCalendarDate('${key}')" aria-label="${weekday} ${date.getDate()}日" aria-pressed="${selected}"
+            class="flex flex-col items-center gap-1 py-1 rounded-lg ${selected ? 'bg-indigo-600 text-white' : 'text-slate-400'}">
+            <span class="text-[9px] ${index >= 5 ? 'text-rose-300' : ''}">${weekday}</span>
+            <span class="w-7 h-7 flex items-center justify-center rounded-full text-xs ${key === todayKey && !selected ? 'border border-indigo-400 text-indigo-300' : ''}">${date.getDate()}</span>
+            <span class="h-1 w-1 rounded-full ${eventsByDate.has(key) ? (selected ? 'bg-white' : 'bg-indigo-400') : 'bg-transparent'}"></span>
+          </button>
+        `;
+      }).join('');
+
+      const selectedEvents = events.filter(calendarEvent => calendarDateKey(new Date(calendarEvent.starts_at)) === selectedKey);
+      document.getElementById('calendar-event-count').textContent = selectedEvents.length ? `${selectedEvents.length}件` : '';
+      if (!selectedEvents.length) {
+        eventsContainer.innerHTML = '<div class="py-10 text-center text-xs text-slate-500">予定はありません</div>';
+      } else {
+        eventsContainer.innerHTML = selectedEvents.map(calendarEvent => {
+          const start = new Date(calendarEvent.starts_at);
+          const end = calendarEvent.ends_at ? new Date(calendarEvent.ends_at) : null;
+          const startText = start.getHours() === 0 && start.getMinutes() === 0 && !end
+            ? '終日'
+            : start.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+          const endText = end ? ` - ${end.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}` : '';
+          const canDelete = ['admin', 'superadmin'].includes(state.currentUser.role)
+            || calendarEvent.created_by === state.currentUser.id;
+          return `
+            <article class="flex gap-3 py-3">
+              <time class="w-12 shrink-0 pt-0.5 text-[11px] font-medium text-indigo-300">${startText}${endText}</time>
+              <div class="min-w-0 flex-1 border-l-2 border-indigo-500 pl-3">
+                <div class="flex items-start justify-between gap-2">
+                  <h5 class="text-xs font-semibold text-slate-100">${escapeHtml(calendarEvent.title)}</h5>
+                  ${canDelete ? `<button type="button" onclick="deleteCalendarEvent('${calendarEvent.id}')" aria-label="予定を削除" class="shrink-0 text-slate-500 hover:text-rose-300"><i data-lucide="x" class="w-4 h-4"></i></button>` : ''}
+                </div>
+                ${calendarEvent.description ? `<p class="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-slate-400">${escapeHtml(calendarEvent.description)}</p>` : ''}
+                <p class="mt-1 text-[10px] text-slate-500">${escapeHtml(calendarEvent.creator?.full_name || '')}</p>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+      lucide.createIcons();
+    }
+
+    function selectCalendarDate(dateKey) {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      calendarSelectedDate = new Date(year, month - 1, day);
+      renderCalendar();
+    }
+
+    // --- チャット機能 (匿名/実名 & 特権管理者表示機能) ---
+    function toggleChatAnonLabel(checkbox) {
+      const r = document.getElementById('label-real');
+      const a = document.getElementById('label-anon');
+      if (checkbox.checked) {
+        r.className = "text-[10px] text-slate-500";
+        a.className = "text-[10px] text-purple-400 font-bold";
+      } else {
+        r.className = "text-[10px] text-indigo-400 font-bold";
+        a.className = "text-[10px] text-slate-500";
+      }
+    }
+
+    async function sendChatMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input-text');
+      const text = input.value.trim();
+      if(!text) return;
+
+      const isAnon = document.getElementById('chat-anon-toggle').checked;
+      const { error } = await supabaseClient.rpc('send_chat_message', {
+        message_content: text,
+        anonymous: isAnon
+      });
+      if (error) return showToast(`送信できませんでした: ${error.message}`);
+      input.value = '';
+      await addAuditLog('チャットに投稿しました', 'chat');
+      await renderChat(true);
+    }
+
+    async function renderChat(scrollToBottom = false) {
+      const container = document.getElementById('chat-messages-container');
+      if (!supabaseClient || !state.currentUser) return;
+      const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 24;
+      const oldScrollTop = container.scrollTop;
+      const { data: messages, error } = await supabaseClient
+        .from('chat_messages_feed')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(200);
+      if (error) {
+        container.innerHTML = `<div class="text-center text-xs text-rose-300 py-6">チャットを読み込めませんでした</div>`;
+        return;
+      }
+      state.messages = messages.map(message => ({
+        ...message,
+        sender: {
+          full_name: message.sender_name,
+          class_name: message.sender_class,
+          grade: message.sender_grade,
+          avatar_url: message.sender_avatar,
+          avatar_path: message.sender_avatar_path
+        },
+        isAnonymous: message.is_anonymous,
+        isSelf: message.is_self
+      }));
+      await applyAvatarUrls(state.messages.map(message => message.sender));
+
+      if (!state.messages.length) {
+        container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">メッセージはありません</div>`;
+        return;
+      }
+
+      const isViewerAdmin = ['admin', 'superadmin'].includes(state.currentUser.role);
+
+      container.innerHTML = state.messages.map(msg => {
+        const isSelf = msg.isSelf;
+        const displayName = msg.sender.full_name;
+        let gradeBadge = msg.sender.grade === 'admin' ? '顧問' : msg.sender.grade + '年';
+        let avatarSrc = safeImageUrl(msg.sender.avatar_url) || 'https://api.dicebear.com/7.x/bottts/svg?seed=anonymous';
+        let gradeClass = msg.sender.grade;
+
+        let adminNoteHtml = '';
+
+        if (msg.isAnonymous) {
+          if (!isViewerAdmin) avatarSrc = 'https://api.dicebear.com/7.x/bottts/svg?seed=anonymous';
+          if (isViewerAdmin) adminNoteHtml = `<span class="text-[9px] bg-red-900/80 text-red-200 px-1.5 py-0.5 rounded font-mono ml-1">管理者表示: ${escapeHtml(msg.sender.class_name || '')}</span>`;
+        }
+
+        return `
+          <div class="flex items-start space-x-2 ${isSelf ? 'flex-row-reverse space-x-reverse' : ''}">
+            <div class="w-7 h-7 rounded-full border-2 grade-border-${gradeClass} p-0.5 shrink-0 mt-1">
+              <img src="${escapeHtml(avatarSrc)}" class="w-full h-full object-cover rounded-full bg-slate-800">
+            </div>
+            <div>
+              <div class="flex items-center space-x-1.5 mb-1 ${isSelf ? 'justify-end' : ''}">
+                <span class="text-[11px] font-bold ${msg.isAnonymous ? 'text-purple-300' : ''}">${escapeHtml(displayName)}</span>
+                <span class="text-[9px] px-1 rounded grade-badge-${gradeClass}">${gradeBadge}</span>
+                ${adminNoteHtml}
+              </div>
+              <div class="${isSelf ? 'bg-indigo-600 text-white rounded-l-xl rounded-br-xl' : 'bg-slate-800 text-slate-200 rounded-r-xl rounded-bl-xl'} text-xs p-2.5 max-w-[240px] leading-relaxed break-words">
+                ${escapeHtml(msg.content)}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+      if (scrollToBottom || wasAtBottom) container.scrollTop = container.scrollHeight;
+      else container.scrollTop = oldScrollTop;
+    }
+
+    // --- コントロールパネル (承認・削除・監査ログ) ---
+    async function approveUser(userId) {
+      const { error } = await supabaseClient.rpc('set_profile_status', {
+        target_user: userId,
+        next_status: 'approved'
+      });
+      if (error) return showToast(`承認できませんでした: ${error.message}`);
+      showToast('アカウントを承認しました');
+      await renderAdminPanel();
+    }
+
+    async function rejectUser(userId) {
+      const { error } = await supabaseClient.rpc('set_profile_status', {
+        target_user: userId,
+        next_status: 'rejected'
+      });
+      if (error) return showToast(`却下できませんでした: ${error.message}`);
+      await renderAdminPanel();
+    }
+
+    let deleteTargetUserId = null;
+
+    function deleteUser(userId) {
+      if (!confirm('このアカウントを削除状態にしますか？')) return;
+      deleteTargetUserId = userId;
+      document.getElementById('delete-confirm-password').value = '';
+      document.getElementById('modal-confirm-delete').classList.remove('hidden');
+    }
+
+    async function confirmDeleteUser(event) {
+      event.preventDefault();
+      const password = document.getElementById('delete-confirm-password').value;
+      const { data: { user: authUser } } = await supabaseClient.auth.getUser();
+      if (!authUser?.email) return showToast('ログイン状態を確認できません。');
+
+      const { error: authError } = await supabaseClient.auth.signInWithPassword({
+        email: authUser.email,
+        password
+      });
+      if (authError) return showToast('パスワードを確認してください。');
+
+      const { error } = await supabaseClient.rpc('soft_delete_profile', {
+        target_user: deleteTargetUserId
+      });
+      if (error) return showToast(`削除できませんでした: ${error.message}`);
+
+      document.getElementById('modal-confirm-delete').classList.add('hidden');
+      deleteTargetUserId = null;
+      showToast('アカウントを削除状態にしました');
+      await renderAdminPanel();
+    }
+
+    async function restoreUser(userId) {
+      const { error } = await supabaseClient.rpc('restore_profile', { target_user: userId });
+      if (error) return showToast(`復元できませんでした: ${error.message}`);
+      showToast('アカウントを復元しました');
+      await renderAdminPanel();
+    }
+
+    async function changeUserRole(userId, role) {
+      if (state.currentUser.role !== 'superadmin') return;
+      const { error } = await supabaseClient.rpc('set_profile_role', {
+        target_user: userId,
+        next_role: role
+      });
+      if (error) {
+        showToast(`権限を変更できませんでした: ${error.message}`);
+        await renderAdminPanel();
+        return;
+      }
+      showToast('権限を変更しました');
+      await renderAdminPanel();
+    }
+
+    async function renderAdminPanel() {
+      if (!supabaseClient || !state.currentUser || !['admin', 'superadmin'].includes(state.currentUser.role)) return;
+      const { data: users, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        showToast(`管理情報を取得できませんでした: ${error.message}`);
+        return;
+      }
+      await applyAvatarUrls(users);
+
+      // 承認待ちユーザー
+      const pendingContainer = document.getElementById('pending-users-list');
+      const pendingUsers = users.filter(u => u.status === 'pending' && !u.deleted_at);
+
+      if (pendingUsers.length === 0) {
+        pendingContainer.innerHTML = `<div class="text-[11px] text-slate-500">承認待ちのアカウントはありません</div>`;
+      } else {
+        pendingContainer.innerHTML = pendingUsers.map(u => `
+          <div class="flex items-center justify-between p-2 bg-slate-900/60 rounded-lg border border-slate-700/50">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-full border p-0.5 grade-border-${u.grade}">
+                <img src="${escapeHtml(safeImageUrl(u.avatar_url))}" class="w-full h-full object-cover rounded-full">
+              </div>
+              <div>
+                <div class="text-xs font-bold">${escapeHtml(u.full_name)}</div>
+                <div class="text-[10px] text-slate-400">${u.grade === 'admin' ? '顧問' : u.grade + '年'} ${escapeHtml(u.class_name)}</div>
+              </div>
+            </div>
+            <div class="flex space-x-1">
+              <button onclick="approveUser('${u.id}')" class="px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded hover:bg-indigo-500">承認</button>
+              <button onclick="deleteUser('${u.id}')" class="px-2 py-1 bg-slate-700 text-slate-300 text-[10px] font-bold rounded hover:bg-red-600">削除</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 承認済みユーザー管理
+      const approvedContainer = document.getElementById('approved-users-list');
+      const approvedUsers = users.filter(u => u.status === 'approved' && !u.deleted_at);
+
+      if (approvedUsers.length === 0) {
+        approvedContainer.innerHTML = `<div class="text-[11px] text-slate-500">登録済みユーザーはいません</div>`;
+      } else {
+        approvedContainer.innerHTML = approvedUsers.map(u => `
+          <div class="flex items-center justify-between p-2 bg-slate-900/40 rounded-lg">
+            <div class="flex items-center space-x-2">
+              <div class="w-6 h-6 rounded-full border p-0.5 grade-border-${u.grade}">
+                <img src="${escapeHtml(safeImageUrl(u.avatar_url))}" class="w-full h-full object-cover rounded-full">
+              </div>
+              <div class="text-xs">
+                <span class="font-bold">${escapeHtml(u.full_name)}</span>
+                <span class="text-[10px] text-slate-400">(${u.grade === 'admin' ? '顧問' : u.grade + '年'})</span>
+              </div>
+            </div>
+            ${state.currentUser.role === 'superadmin' && u.id !== state.currentUser.id ? `
+              <select aria-label="${escapeHtml(u.full_name)}の権限" onchange="changeUserRole('${u.id}', this.value)" class="bg-slate-800 border border-slate-700 rounded px-1 py-1 text-[10px]">
+                <option value="student" ${u.role === 'student' ? 'selected' : ''}>生徒</option>
+                <option value="officer" ${u.role === 'officer' ? 'selected' : ''}>役員</option>
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>管理者</option>
+                <option value="superadmin" ${u.role === 'superadmin' ? 'selected' : ''}>特権管理者</option>
+              </select>
+            ` : ''}
+            ${u.id !== state.currentUser.id ? `
+              <button onclick="deleteUser('${u.id}')" class="text-red-400 hover:text-red-300 p-1 text-[10px]">削除</button>
+            ` : `<span class="text-[9px] text-slate-500">自分</span>`}
+          </div>
+        `).join('');
+      }
+
+      const deletedContainer = document.getElementById('deleted-users-list');
+      const deletedUsers = users.filter(u => u.deleted_at);
+      deletedContainer.innerHTML = deletedUsers.length
+        ? deletedUsers.map(u => `
+            <div class="flex items-center justify-between p-2 bg-slate-900/40 rounded-lg">
+              <span class="text-xs">${escapeHtml(u.full_name)}</span>
+              <button onclick="restoreUser('${u.id}')" class="text-indigo-300 text-[10px]">復元</button>
+            </div>
+          `).join('')
+        : `<div class="text-[11px] text-slate-500">削除済みアカウントはありません</div>`;
+
+      const { data: deletedPosts, error: deletedPostsError } = await supabaseClient
+        .from('posts')
+        .select('id, title')
+        .not('deleted_at', 'is', null)
+        .order('created_at', { ascending: false });
+      const deletedPostsContainer = document.getElementById('deleted-posts-list');
+      deletedPostsContainer.innerHTML = deletedPostsError
+        ? `<div class="text-[11px] text-rose-300">案件を読み込めませんでした</div>`
+        : deletedPosts.length
+          ? deletedPosts.map(post => `
+              <div class="flex items-center justify-between p-2 bg-slate-900/40 rounded-lg">
+                <span class="text-xs">${escapeHtml(post.title)}</span>
+                <button onclick="restorePost('${post.id}')" class="text-indigo-300 text-[10px]">復元</button>
+              </div>
+            `).join('')
+          : `<div class="text-[11px] text-slate-500">削除済み案件はありません</div>`;
+    }
+
+    async function renderAuditLogs() {
+      const container = document.getElementById('audit-log-container');
+      if (!supabaseClient || !state.currentUser || !['admin', 'superadmin'].includes(state.currentUser.role)) {
+        container.innerHTML = `<div>ログ履歴なし</div>`;
+        return;
+      }
+
+      const { data: logs, error } = await supabaseClient
+        .from('audit_logs')
+        .select('id, action, resource_type, resource_id, created_at, actor:profiles!audit_logs_actor_id_fkey(full_name)')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) {
+        container.innerHTML = `<div>監査ログを読み込めませんでした</div>`;
+        return;
+      }
+      container.innerHTML = logs.length
+        ? logs.map(log => `<div>${new Date(log.created_at).toLocaleString()} ${escapeHtml(log.actor?.full_name || '不明')}: ${escapeHtml(log.action)} ${escapeHtml(log.resource_type || '')} ${escapeHtml(log.resource_id || '')}</div>`).join('')
+        : `<div>ログ履歴なし</div>`;
+    }
+
+    // HTMLエスケープヘルパー
+    function escapeHtml(str) {
+      if(!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+
+    function safeImageUrl(value) {
+      try {
+        const url = new URL(value);
+        return url.protocol === 'https:' ? url.href : '';
+      } catch {
+        return '';
+      }
+    }
+
+    /* ===================================================
+       6. アプリケーション初期起動処理
+       =================================================== */
+    async function restoreSession() {
+      if (!supabaseClient) return;
+
+      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+      if (sessionError || !session) return;
+
+      const { data: user, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (error || !user || user.deleted_at || user.status === 'rejected') {
+        await supabaseClient.auth.signOut();
+        return;
+      }
+
+      if (user.status === 'pending') {
+        showPendingView();
+        return;
+      }
+
+      state.currentUser = user;
+      renderAppView();
+    }
+
+    window.onload = async function() {
+      initSupabase();
+      lucide.createIcons();
+      await restoreSession();
+      if (!state.currentUser && !document.getElementById('view-pending').classList.contains('hidden')) return;
+      if (!state.currentUser) showAuthSelection();
+    };
+  </script>
+</body>
+</html>
