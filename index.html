@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>生徒会 案内箱</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,11 +11,29 @@
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    :root {
+      color-scheme: light;
+      --ink: #172f49;
+      --muted: #6b7c8f;
+      --line: #e3eaf1;
+      --accent: #244e6c;
+      --accent-hover: #315f7e;
+      --surface: #ffffff;
+      --surface-soft: #f5f8fb;
     }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #edf2f7;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
     .app-container {
       max-width: 430px;
       height: 100vh;
@@ -24,24 +42,172 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      background-color: #1e293b;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      background-color: var(--surface);
+      border: 1px solid #e1e8ef;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px -32px rgba(23, 47, 73, 0.35);
       overflow: hidden;
     }
 
     /* 学年カラーシステム定義 */
-    .grade-border-1 { border-color: #3b82f6; } /* 1年: 青 */
-    .grade-border-2 { border-color: #22c55e; } /* 2年: 緑 */
-    .grade-border-3 { border-color: #ef4444; } /* 3年: 赤 */
-    .grade-border-admin { border-color: #a855f7; } /* 特権管理者/顧問: 紫 */
+    .grade-border-1 { border-color: #6b8dab; } /* 1年: 青 */
+    .grade-border-2 { border-color: #699184; } /* 2年: 緑 */
+    .grade-border-3 { border-color: #bb7777; } /* 3年: 赤 */
+    .grade-border-admin { border-color: #927ca8; } /* 特権管理者/顧問: 紫 */
 
-    .grade-badge-1 { background-color: #1d4ed8; color: #ffffff; }
-    .grade-badge-2 { background-color: #15803d; color: #ffffff; }
-    .grade-badge-3 { background-color: #b91c1c; color: #ffffff; }
-    .grade-badge-admin { background-color: #7e22ce; color: #ffffff; }
+    .grade-badge-1 { background-color: #e8f0f7; color: #355a78; }
+    .grade-badge-2 { background-color: #e8f2ed; color: #426d5d; }
+    .grade-badge-3 { background-color: #f7eceb; color: #8a5252; }
+    .grade-badge-admin { background-color: #f0ebf5; color: #66547e; }
 
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Keep the existing utility-class markup while applying the light portal theme. */
+    [class~="bg-slate-950/90"] {
+      background-color: rgba(17, 39, 59, 0.48) !important;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+    [class~="bg-slate-900"] { background-color: #f7f9fc !important; }
+    [class~="bg-slate-900/80"] { background-color: rgba(247, 249, 252, 0.92) !important; }
+    [class~="bg-slate-900/60"] { background-color: rgba(247, 249, 252, 0.84) !important; }
+    [class~="bg-slate-900/40"] { background-color: rgba(247, 249, 252, 0.68) !important; }
+    [class~="bg-slate-800"] { background-color: #f0f4f8 !important; }
+    [class~="bg-slate-800/80"] { background-color: #ffffff !important; }
+    [class~="bg-slate-800/60"] { background-color: #f8fafc !important; }
+    [class~="bg-slate-700"] { background-color: #e4ebf2 !important; }
+    [class~="bg-slate-700/60"] { background-color: #edf2f7 !important; }
+    [class~="bg-slate-600"] { background-color: #d7e1eb !important; }
+    [class~="text-slate-50"],
+    [class~="text-slate-100"] { color: #172f49 !important; }
+    [class~="text-slate-200"] { color: #334b63 !important; }
+    [class~="text-slate-300"] { color: #52677d !important; }
+    [class~="text-slate-400"] { color: #6b7c8f !important; }
+    [class~="text-slate-500"] { color: #8493a3 !important; }
+    [class~="text-indigo-300"],
+    [class~="text-indigo-400"] { color: #315f7e !important; }
+    [class~="text-indigo-500"] { color: #244e6c !important; }
+    [class~="text-indigo-600"] { color: #1d435f !important; }
+    [class~="text-amber-200"],
+    [class~="text-amber-300"],
+    [class~="text-amber-400"],
+    [class~="text-amber-500"] { color: #87651d !important; }
+    [class~="text-emerald-300"],
+    [class~="text-emerald-400"],
+    [class~="text-green-400"] { color: #3d705e !important; }
+    [class~="text-purple-300"],
+    [class~="text-purple-400"] { color: #6d5886 !important; }
+    [class~="text-red-300"],
+    [class~="text-red-400"],
+    [class~="text-rose-300"] { color: #a64e58 !important; }
+    [class~="text-pink-500"] { color: #a64e69 !important; }
+    [class~="border-slate-700"],
+    [class~="border-slate-700/80"],
+    [class~="border-slate-700/60"],
+    [class~="border-slate-700/50"],
+    [class~="border-slate-700/40"],
+    [class~="border-slate-800"] { border-color: var(--line) !important; }
+    [class~="border-indigo-500/40"] { border-color: rgba(49, 95, 126, 0.28) !important; }
+    [class~="bg-indigo-400"] { background-color: #658aa0 !important; }
+    [class~="bg-indigo-600"] { background-color: var(--accent) !important; }
+    [class~="bg-indigo-600/30"] { background-color: rgba(36, 78, 108, 0.14) !important; }
+    [class~="hover:bg-indigo-500"]:hover { background-color: var(--accent-hover) !important; }
+    [class~="hover:bg-slate-800"]:hover,
+    [class~="hover:bg-slate-700"]:hover { background-color: #e8eef4 !important; }
+    [class~="hover:text-slate-200"]:hover { color: #334b63 !important; }
+    [class~="bg-gradient-to-tr"] {
+      background-image: linear-gradient(135deg, #244e6c, #5c827c) !important;
+    }
+
+    #view-auth,
+    #view-login,
+    #view-register,
+    #view-pending { background-color: #ffffff !important; }
+
+    #view-main > header {
+      background-color: #ffffff !important;
+      border-color: var(--line) !important;
+    }
+    #view-main > div {
+      background-color: #f7f9fc !important;
+    }
+    #view-main > nav {
+      background-color: #ffffff !important;
+      border-color: var(--line) !important;
+      box-shadow: 0 -8px 24px rgba(23, 47, 73, 0.035);
+      padding-bottom: env(safe-area-inset-bottom);
+      height: calc(3.5rem + env(safe-area-inset-bottom));
+    }
+    .nav-btn {
+      position: relative;
+      min-width: 0;
+      transition: color 160ms ease, background-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn.text-indigo-400 { color: var(--accent) !important; }
+    .nav-btn.text-indigo-400::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 2px;
+      border-radius: 0 0 2px 2px;
+      background: #5c827c;
+    }
+    #pinned-notice-container {
+      background: linear-gradient(120deg, #fbf7ec, #f8f5ee) !important;
+      border-color: #eee3c9 !important;
+    }
+    #toast {
+      box-shadow: 0 8px 24px rgba(23, 47, 73, 0.2);
+    }
+    input:not([type="checkbox"]):not([type="file"]),
+    textarea,
+    select {
+      color: var(--ink);
+      accent-color: var(--accent);
+    }
+    input::placeholder,
+    textarea::placeholder { color: #91a0af; }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #7294a8 !important;
+      box-shadow: 0 0 0 3px rgba(81, 126, 151, 0.12);
+    }
+    button {
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+    button:active { transform: scale(0.98); }
+    button:focus-visible,
+    [role="button"]:focus-visible {
+      outline: 3px solid rgba(81, 126, 151, 0.38);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 430px) {
+      body { background: #ffffff; }
+      .app-container {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
