@@ -875,6 +875,7 @@
         email,
         password,
         options: {
+          emailRedirectTo: new URL('.', window.location.href).href,
           data: { full_name: name, grade, class_name: className }
         }
       });
