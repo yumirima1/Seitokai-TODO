@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>生徒会 案内箱</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,12 +14,10 @@
     :root {
       color-scheme: light;
       --ink: #172f49;
-      --muted: #6b7c8f;
       --line: #e3eaf1;
       --accent: #244e6c;
       --accent-hover: #315f7e;
       --surface: #ffffff;
-      --surface-soft: #f5f8fb;
     }
 
     * {
@@ -32,13 +30,20 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
     }
 
     .app-container {
+      width: 100%;
       max-width: 430px;
       height: 100vh;
       height: 100dvh;
+      min-width: 0;
       margin: 0 auto;
+      padding-top: env(safe-area-inset-top);
       display: flex;
       flex-direction: column;
       position: relative;
@@ -124,10 +129,23 @@
     #view-login,
     #view-register,
     #view-pending { background-color: #ffffff !important; }
+    #view-auth,
+    #view-pending {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
 
     #view-main > header {
       background-color: #ffffff !important;
       border-color: var(--line) !important;
+    }
+    #header-user-name,
+    #header-user-class {
+      max-width: min(55vw, 240px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     #view-main > div {
       background-color: #f7f9fc !important;
@@ -142,6 +160,7 @@
     .nav-btn {
       position: relative;
       min-width: 0;
+      min-height: 44px;
       transition: color 160ms ease, background-color 160ms ease;
       -webkit-tap-highlight-color: transparent;
     }
@@ -178,6 +197,21 @@
       border-color: #7294a8 !important;
       box-shadow: 0 0 0 3px rgba(81, 126, 151, 0.12);
     }
+    input:not([type="checkbox"]):not([type="file"]),
+    textarea,
+    select { font-size: max(16px, 1em); }
+    .tab-content {
+      width: min(100%, 800px);
+      margin-inline: auto;
+      overflow-wrap: anywhere;
+    }
+    [id^="modal-"] > form {
+      max-height: calc(100dvh - 2rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    #feed-posts-container p,
+    #calendar-events-list p { overflow-wrap: anywhere; }
     button {
       -webkit-tap-highlight-color: transparent;
       transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
@@ -198,6 +232,32 @@
       }
     }
 
+    @media (min-width: 640px) {
+      body { padding: 24px; }
+      .app-container {
+        width: min(100%, 1040px);
+        max-width: none;
+        height: min(calc(100dvh - 48px), 920px);
+        border-radius: 24px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      #view-auth,
+      #view-login,
+      #view-register,
+      #view-pending { padding-left: 1rem; padding-right: 1rem; }
+      #view-main > header { padding-left: 0.75rem; padding-right: 0.75rem; }
+      #view-main > header > div:first-child > span { font-size: 0.75rem; }
+      #header-user-name { max-width: 5rem; }
+      #header-user-class { display: none; }
+      #tab-home,
+      #tab-files,
+      #tab-vote,
+      #tab-calendar,
+      #tab-admin { padding-left: 0.75rem; padding-right: 0.75rem; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -210,7 +270,7 @@
     }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body class="flex items-center justify-center">
 
   <div class="app-container">
 
@@ -339,7 +399,6 @@
           <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
         </div>
         <h1 class="text-2xl font-bold tracking-wide">生徒会ポータル</h1>
-        <p class="text-xs text-slate-400 mt-2">安全・円滑な学校情報プラットフォーム</p>
       </div>
 
       <div class="space-y-3 mb-6">
@@ -347,7 +406,7 @@
           ログイン
         </button>
         <button onclick="showRegisterForm()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-sm border border-slate-700 transition">
-          アカウント新規作成
+          新規登録
         </button>
       </div>
     </section>
@@ -400,9 +459,9 @@
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">学年</label>
             <select id="reg-grade" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
-              <option value="1">1年生 (青)</option>
-              <option value="2">2年生 (緑)</option>
-              <option value="3">3年生 (赤)</option>
+              <option value="1">1年生</option>
+              <option value="2">2年生</option>
+              <option value="3">3年生</option>
             </select>
           </div>
           <div>
@@ -413,7 +472,7 @@
 
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">パスワード（8文字以上）</label>
-          <input type="password" id="reg-pass" autocomplete="new-password" minlength="8" required placeholder="8文字以上" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+          <input type="password" id="reg-pass" autocomplete="new-password" minlength="8" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
         </div>
 
         <div>
@@ -440,45 +499,22 @@
         </div>
         <h2 class="text-xl font-bold">承認待ちです</h2>
         <p class="text-xs text-slate-400 mt-2 px-4 leading-relaxed">
-          アカウント登録の申請が完了しました。<br>顧問の先生または特権管理者が承認するまでお待ちください。
+          管理者の承認後に利用できます。
         </p>
       </div>
 
-      <!-- オンボーディング ガイド -->
-      <div class="my-auto">
-        <div id="onboarding-slide-guide" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center space-x-2 text-indigo-400 font-semibold text-sm">
-            <i data-lucide="book-open" class="w-4 h-4"></i>
-            <span>アプリ利用ルールと機能ガイド</span>
-          </div>
-          <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
-            <li>フィードで案件募集やお知らせへの意見・いいねが可能です。</li>
-            <li>チャット機能では実名/匿名モードを自由に切替できます。</li>
-            <li>誹謗中傷対策のため、特権管理者は匿名の発言元を確認できます。</li>
-            <li>投票機能で全校議決や意見集約に参加できます。</li>
-          </ul>
-        </div>
-        <div id="onboarding-slide-privacy" class="hidden bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center space-x-2 text-emerald-400 font-semibold text-sm">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
-            <span>利用規約・プライバシー</span>
-          </div>
-          <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
-            <li>他者への誹謗中傷、個人情報の投稿、目的外の利用は禁止です。</li>
-            <li>氏名・学年・組、投稿、投票、チャット、資料アクセスの記録を運用に必要な範囲で扱います。</li>
-            <li>匿名チャットも特権管理者は発言者を確認できます。完全な匿名ではありません。</li>
-            <li>削除したアカウントや投稿は一定期間、管理者が復元できる状態で保管されます。</li>
-          </ul>
-        </div>
-        <div class="flex items-center justify-between pt-3">
-          <button id="onboarding-previous" onclick="changeOnboardingSlide(-1)" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs">前へ</button>
-          <span id="onboarding-slide-count" class="text-[10px] text-slate-400">1 / 2</span>
-          <button id="onboarding-next" onclick="changeOnboardingSlide(1)" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs">次へ</button>
-        </div>
+      <div class="my-8 bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+        <h3 class="text-sm font-semibold mb-3">利用上の注意</h3>
+        <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
+          <li>誹謗中傷や個人情報の投稿は禁止です。</li>
+          <li>氏名・投稿・投票・チャット・資料アクセスの記録を運用に必要な範囲で扱います。</li>
+          <li>匿名チャットも特権管理者には発言者が表示されます。</li>
+          <li>削除したアカウントや投稿は、一定期間管理者が復元できます。</li>
+        </ul>
       </div>
 
       <button onclick="leavePendingView()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">
-        ログイン選択画面に戻る
+        戻る
       </button>
     </section>
 
@@ -535,7 +571,7 @@
           <!-- 新規投稿作成フォーム -->
           <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3 space-y-2">
             <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-300">新しい提案・お知らせを投稿</span>
+              <span class="text-xs font-bold text-slate-300">新しい投稿</span>
               <button onclick="submitNewPost()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition">投稿</button>
             </div>
             <label id="pinned-post-control" class="hidden flex items-center gap-2 text-[11px] text-amber-300">
@@ -941,7 +977,6 @@
     function showPendingView() {
       hideAllViews();
       document.getElementById('view-pending').classList.remove('hidden');
-      changeOnboardingSlide(0);
       clearInterval(pendingStatusTimer);
       pendingStatusTimer = setInterval(checkPendingSession, 5000);
       checkPendingSession();
@@ -1007,17 +1042,6 @@
     function showRegisterForm() {
       hideAllViews();
       document.getElementById('view-register').classList.remove('hidden');
-    }
-
-    let onboardingSlide = 0;
-
-    function changeOnboardingSlide(direction) {
-      onboardingSlide = Math.max(0, Math.min(1, onboardingSlide + direction));
-      document.getElementById('onboarding-slide-guide').classList.toggle('hidden', onboardingSlide !== 0);
-      document.getElementById('onboarding-slide-privacy').classList.toggle('hidden', onboardingSlide !== 1);
-      document.getElementById('onboarding-slide-count').textContent = `${onboardingSlide + 1} / 2`;
-      document.getElementById('onboarding-previous').disabled = onboardingSlide === 0;
-      document.getElementById('onboarding-next').disabled = onboardingSlide === 1;
     }
 
     /* ===================================================
