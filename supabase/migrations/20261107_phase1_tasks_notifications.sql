@@ -119,7 +119,7 @@ with check (
     or exists (
       select 1 from public.profiles p
       where p.id = assignee_id and p.status = 'approved' and p.deleted_at is null
-        and p.role in ('officer', 'admin', 'superadmin')
+        and p.role in ('officer', 'admin')
     )
   )
 );
@@ -134,7 +134,7 @@ with check (
     or exists (
       select 1 from public.profiles p
       where p.id = assignee_id and p.status = 'approved' and p.deleted_at is null
-        and p.role in ('officer', 'admin', 'superadmin')
+        and p.role in ('officer', 'admin')
     )
   )
 );
@@ -238,8 +238,8 @@ begin
     and (
       audience_role is null
       or audience_role = 'all'
-      or (audience_role = 'officer' and p.role in ('officer', 'admin', 'superadmin'))
-      or (audience_role = 'admin' and p.role in ('admin', 'superadmin'))
+      or (audience_role = 'officer' and p.role in ('officer', 'admin'))
+      or (audience_role = 'admin' and p.role = 'admin')
     )
     and case
       when event_type = 'post' then coalesce(pref.posts_enabled, true)

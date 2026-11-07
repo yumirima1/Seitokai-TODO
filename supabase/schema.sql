@@ -7,8 +7,10 @@ create table if not exists public.profiles (
   class_name text not null,
   avatar_url text check (avatar_url is null or avatar_url ~ '^https://'),
   avatar_path text,
+  avatar_key text not null default 'council'
+    check (avatar_key in ('council', 'blue', 'green', 'rose', 'cat', 'fox', 'rabbit', 'cloud')),
   role text not null default 'student'
-    check (role in ('student', 'officer', 'admin', 'superadmin')),
+    check (role in ('student', 'officer', 'admin')),
   status text not null default 'pending'
     check (status in ('pending', 'approved', 'rejected')),
   deleted_at timestamptz,
@@ -36,7 +38,7 @@ as $$
   select exists (
     select 1 from public.profiles
     where id = (select auth.uid())
-      and role in ('admin', 'superadmin')
+      and role = 'admin'
       and status = 'approved'
       and deleted_at is null
   );
@@ -50,7 +52,7 @@ as $$
   select exists (
     select 1 from public.profiles
     where id = (select auth.uid())
-      and role in ('officer', 'admin', 'superadmin')
+      and role in ('officer', 'admin')
       and status = 'approved'
       and deleted_at is null
   );
@@ -64,13 +66,15 @@ as $$
 declare
   metadata jsonb := new.raw_user_meta_data;
 begin
-  insert into public.profiles (id, full_name, grade, class_name, avatar_url)
+  insert into public.profiles (id, full_name, grade, class_name, avatar_url, avatar_key)
   values (
     new.id,
     coalesce(nullif(trim(metadata ->> 'full_name'), ''), '新規ユーザー'),
     case when metadata ->> 'grade' in ('1', '2', '3') then metadata ->> 'grade' else '1' end,
     coalesce(nullif(trim(metadata ->> 'class_name'), ''), ''),
-    nullif(metadata ->> 'avatar_url', '')
+    nullif(metadata ->> 'avatar_url', ''),
+    case when metadata ->> 'avatar_key' in ('council', 'blue', 'green', 'rose', 'cat', 'fox', 'rabbit', 'cloud')
+      then metadata ->> 'avatar_key' else 'council' end
   );
   return new;
 end;
@@ -233,7 +237,9 @@ as
          case when m.is_anonymous and not public.app_is_admin()
               then null else p.avatar_url end as sender_avatar,
             case when m.is_anonymous and not public.app_is_admin()
-              then null else p.avatar_path end as sender_avatar_path
+                 then null else p.avatar_path end as sender_avatar_path,
+            case when m.is_anonymous and not public.app_is_admin()
+                 then null else p.avatar_key end as sender_avatar_key
   from public.chat_messages m
   join public.profiles p on p.id = m.sender_id
   where m.deleted_at is null and public.app_is_approved();
@@ -366,11 +372,9 @@ language plpgsql security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if not exists (
-    select 1 from public.profiles
-    where id = (select auth.uid()) and role = 'superadmin'
-      and status = 'approved' and deleted_at is null
-  ) or next_role not in ('student', 'officer', 'admin', 'superadmin') then
+  if not public.app_is_admin()
+    or target_user = (select auth.uid())
+    or next_role not in ('student', 'officer', 'admin') then
     raise exception 'Not authorized';
   end if;
   update public.profiles set role = next_role
@@ -387,10 +391,7 @@ language plpgsql security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if not public.app_is_admin() or target_user = (select auth.uid()) or (
-    exists (select 1 from public.profiles where id = target_user and role in ('admin', 'superadmin'))
-    and not exists (select 1 from public.profiles where id = (select auth.uid()) and role = 'superadmin')
-  ) then
+  if not public.app_is_admin() or target_user = (select auth.uid()) then
     raise exception 'Not authorized';
   end if;
   update public.profiles set deleted_at = now()
@@ -407,10 +408,7 @@ language plpgsql security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if not public.app_is_admin() or (
-    exists (select 1 from public.profiles where id = target_user and role in ('admin', 'superadmin'))
-    and not exists (select 1 from public.profiles where id = (select auth.uid()) and role = 'superadmin')
-  ) then raise exception 'Not authorized'; end if;
+  if not public.app_is_admin() then raise exception 'Not authorized'; end if;
   update public.profiles set deleted_at = null
   where id = target_user and status in ('pending', 'approved', 'rejected');
   if not found then raise exception 'Restorable account not found'; end if;
@@ -440,9 +438,11 @@ using (
 create policy profiles_update_self on public.profiles for update to authenticated
 using (id = (select auth.uid()) and deleted_at is null)
 with check (
-  id = (select auth.uid()) and deleted_at is null
-  and ((role in ('student', 'officer') and grade in ('1', '2', '3'))
-       or (role in ('admin', 'superadmin') and grade = 'admin'))
+  id = (select auth.uid())
+  and deleted_at is null
+  and role = (select role from public.profiles where id = (select auth.uid()))
+  and status = (select status from public.profiles where id = (select auth.uid()))
+  and grade = (select grade from public.profiles where id = (select auth.uid()))
 );
 
 create policy posts_read on public.posts for select to authenticated
@@ -527,8 +527,6 @@ with check (
 create policy votes_read_named on public.poll_votes for select to authenticated
 using (
   user_id = (select auth.uid())
-  or
-  public.app_is_admin()
   or exists (
     select 1 from public.polls p
     where p.id = poll_id and p.is_named and public.app_is_approved()
@@ -572,7 +570,7 @@ grant insert on public.posts, public.post_comments, public.post_likes,
 grant update on public.posts, public.post_comments, public.polls, public.poll_options,
   public.documents, public.calendar_events to authenticated;
 grant delete on public.post_likes to authenticated;
-grant update (full_name, class_name, avatar_url, avatar_path) on public.profiles to authenticated;
+grant update (full_name, class_name, avatar_key) on public.profiles to authenticated;
 revoke all on function public.send_chat_message(text, boolean) from public, anon;
 grant execute on function public.send_chat_message(text, boolean) to authenticated;
 revoke all on function public.record_audit_event(text, text, text) from public, anon;
@@ -675,5 +673,5 @@ using (
 
 -- Create the first teacher account in Supabase Auth, then run this with its email:
 -- update public.profiles
--- set role = 'superadmin', status = 'approved', grade = 'admin', class_name = '生徒会顧問'
+-- set role = 'admin', status = 'approved', grade = 'admin', class_name = '生徒会顧問'
 -- where id = (select id from auth.users where email = 'teacher@example.com');

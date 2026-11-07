@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>生徒会 案内箱</title>
+  <title>筑前生徒会</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/tailwind.css">
   <!-- Lucide Icons -->
@@ -56,7 +56,7 @@
     .grade-border-1 { border-color: #6b8dab; } /* 1年: 青 */
     .grade-border-2 { border-color: #699184; } /* 2年: 緑 */
     .grade-border-3 { border-color: #bb7777; } /* 3年: 赤 */
-    .grade-border-admin { border-color: #927ca8; } /* 特権管理者/顧問: 紫 */
+    .grade-border-admin { border-color: #927ca8; } /* 管理者/顧問: 紫 */
 
     .grade-badge-1 { background-color: #e8f0f7; color: #355a78; }
     .grade-badge-2 { background-color: #e8f2ed; color: #426d5d; }
@@ -277,10 +277,6 @@
       border-radius: 16px !important;
     }
 
-    .app-container form label:not(:has(input[type="checkbox"], input[type="radio"])) {
-      font-size: 0 !important;
-    }
-
     #view-main > header,
     #view-main > nav,
     [id^="modal-"] {
@@ -402,6 +398,40 @@
       font-weight: 600;
     }
 
+    .document-filter-fields {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      visibility: hidden;
+      transition: grid-template-rows 220ms ease, opacity 180ms ease;
+    }
+
+    .document-filter-fields > div {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .document-filter-panel.is-expanded .document-filter-fields {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .avatar-option {
+      min-height: 4rem;
+    }
+
+    .avatar-option[aria-pressed="true"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--line);
+    }
+
+    .calendar-week-navigation { display: none; }
+
+    @media (min-width: 768px) {
+      .calendar-week-navigation { display: grid; }
+    }
+
     .floating-action-trigger {
       display: grid;
       width: 3.5rem;
@@ -418,37 +448,6 @@
 
     .floating-actions.is-open .floating-action-trigger {
       transform: rotate(45deg);
-    }
-
-    #read-confirmation {
-      position: absolute;
-      z-index: 95;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      pointer-events: none;
-    }
-
-    #read-confirmation.hidden {
-      display: none;
-    }
-
-    #read-confirmation > span {
-      display: grid;
-      width: clamp(4rem, 18vw, 6rem);
-      aspect-ratio: 1;
-      place-items: center;
-      border-radius: 50%;
-      background: rgba(36, 78, 108, 0.9);
-      color: white;
-      box-shadow: 0 12px 40px rgba(23, 47, 73, 0.28);
-      animation: read-pop 650ms cubic-bezier(0.175, 0.885, 0.32, 1.4) both;
-    }
-
-    @keyframes read-pop {
-      0% { opacity: 0; transform: scale(0.35); }
-      55% { opacity: 1; transform: scale(1.15); }
-      100% { opacity: 0; transform: scale(1); }
     }
 
     .poll-gauge {
@@ -784,16 +783,187 @@
       color: #a7b3c2;
     }
 
-    @media (prefers-color-scheme: dark) {
-      html:not([data-theme]) { color-scheme: dark; }
-    }
-
     @media (max-width: 360px) {
       #page-track > .tab-content { padding-left: 0.75rem; padding-right: 0.75rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       #page-track { scroll-behavior: auto; }
+      .document-filter-fields { transition: none; }
+    }
+
+    html[data-theme="cyber"] {
+      color-scheme: dark;
+      --surface: #08110b;
+      --page: #030805;
+      --ink: #d7ffe0;
+      --line: #285437;
+      --accent: #00c853;
+      --accent-hover: #00a844;
+      --theme-text: #d7ffe0;
+      --theme-muted: #a4cbb0;
+      --theme-page: #030805;
+      --theme-card: #0c1a10;
+      --theme-input: #07110a;
+      --theme-border: #285437;
+      background: var(--theme-page);
+    }
+
+    html[data-theme="cloud"] {
+      color-scheme: light;
+      --surface: #ffffff;
+      --page: #e9f5ff;
+      --ink: #17364f;
+      --line: #c8dfef;
+      --accent: #28648a;
+      --accent-hover: #1d5276;
+      --theme-text: #17364f;
+      --theme-muted: #486982;
+      --theme-page: #e9f5ff;
+      --theme-card: #f9fdff;
+      --theme-input: #f2faff;
+      --theme-border: #c8dfef;
+      background: linear-gradient(160deg, #e4f3ff, #f8fcff 54%, #eaf5ff);
+    }
+
+    html[data-theme="cyber"] body,
+    html[data-theme="cyber"] .app-container,
+    html[data-theme="cloud"] body,
+    html[data-theme="cloud"] .app-container {
+      background: var(--theme-page);
+      color: var(--theme-text);
+    }
+
+    html[data-theme="cloud"] .app-container {
+      background: linear-gradient(160deg, #e4f3ff, #f8fcff 54%, #eaf5ff);
+    }
+
+    html[data-theme="cyber"] #view-main > header,
+    html[data-theme="cyber"] #view-main > nav,
+    html[data-theme="cyber"] #view-auth,
+    html[data-theme="cyber"] #view-login,
+    html[data-theme="cyber"] #view-register,
+    html[data-theme="cyber"] #view-pending,
+    html[data-theme="cyber"] #view-main > div,
+    html[data-theme="cloud"] #view-main > header,
+    html[data-theme="cloud"] #view-main > nav,
+    html[data-theme="cloud"] #view-auth,
+    html[data-theme="cloud"] #view-login,
+    html[data-theme="cloud"] #view-register,
+    html[data-theme="cloud"] #view-pending,
+    html[data-theme="cloud"] #view-main > div {
+      background: var(--theme-page) !important;
+      color: var(--theme-text) !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class*="bg-slate-"]:not([class~="bg-slate-950/90"]),
+    html[data-theme="cloud"] .app-container [class*="bg-slate-"]:not([class~="bg-slate-950/90"]) {
+      background-color: var(--theme-card) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="bg-slate-900"],
+    html[data-theme="cyber"] .app-container [class~="bg-slate-900/80"],
+    html[data-theme="cyber"] .app-container [class~="bg-slate-900/60"],
+    html[data-theme="cyber"] .app-container [class~="bg-slate-900/40"] {
+      background-color: var(--theme-input) !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-slate-50"],
+    html[data-theme="cyber"] .app-container [class~="text-slate-100"],
+    html[data-theme="cyber"] .app-container [class~="text-slate-200"],
+    html[data-theme="cyber"] .app-container [class~="text-slate-300"],
+    html[data-theme="cyber"] .app-container [class~="text-slate-400"],
+    html[data-theme="cloud"] .app-container [class~="text-slate-50"],
+    html[data-theme="cloud"] .app-container [class~="text-slate-100"],
+    html[data-theme="cloud"] .app-container [class~="text-slate-200"],
+    html[data-theme="cloud"] .app-container [class~="text-slate-300"],
+    html[data-theme="cloud"] .app-container [class~="text-slate-400"] {
+      color: var(--theme-text) !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-slate-500"],
+    html[data-theme="cloud"] .app-container [class~="text-slate-500"] {
+      color: var(--theme-muted) !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-indigo-300"],
+    html[data-theme="cyber"] .app-container [class~="text-indigo-400"],
+    html[data-theme="cyber"] .app-container [class~="text-indigo-500"],
+    html[data-theme="cyber"] .app-container [class~="text-indigo-600"],
+    html[data-theme="cyber"] .app-container [class~="text-emerald-300"],
+    html[data-theme="cyber"] .app-container [class~="text-emerald-400"],
+    html[data-theme="cyber"] .app-container [class~="text-green-400"] {
+      color: #a7ffb8 !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-amber-200"],
+    html[data-theme="cyber"] .app-container [class~="text-amber-300"],
+    html[data-theme="cyber"] .app-container [class~="text-amber-400"],
+    html[data-theme="cyber"] .app-container [class~="text-amber-500"] {
+      color: #ffe29a !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-rose-300"],
+    html[data-theme="cyber"] .app-container [class~="text-red-200"],
+    html[data-theme="cyber"] .app-container [class~="text-red-300"],
+    html[data-theme="cyber"] .app-container [class~="text-red-400"] {
+      color: #ffabb3 !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-purple-300"],
+    html[data-theme="cyber"] .app-container [class~="text-purple-400"] {
+      color: #d7bdff !important;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="text-pink-500"] {
+      color: #ffb4d2 !important;
+    }
+
+    html[data-theme="cyber"] .app-container .chat-mode-control button:not([aria-pressed="true"]) {
+      color: var(--theme-muted);
+    }
+
+    html[data-theme="cyber"] .app-container [class~="bg-indigo-600"][class~="text-white"] {
+      color: #031008 !important;
+    }
+
+    html[data-theme="cyber"] .app-container input:not([type="checkbox"]):not([type="file"]),
+    html[data-theme="cyber"] .app-container textarea,
+    html[data-theme="cyber"] .app-container select,
+    html[data-theme="cloud"] .app-container input:not([type="checkbox"]):not([type="file"]),
+    html[data-theme="cloud"] .app-container textarea,
+    html[data-theme="cloud"] .app-container select {
+      color: var(--theme-text) !important;
+      background-color: var(--theme-input) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    html[data-theme="cyber"] .app-container input::placeholder,
+    html[data-theme="cyber"] .app-container textarea::placeholder {
+      color: #a4cbb0 !important;
+      opacity: 1;
+    }
+
+    html[data-theme="cloud"] .app-container input::placeholder,
+    html[data-theme="cloud"] .app-container textarea::placeholder {
+      color: #486982 !important;
+      opacity: 1;
+    }
+
+    html[data-theme="cyber"] .app-container [class~="rounded-xl"],
+    html[data-theme="cloud"] .app-container [class~="rounded-xl"] {
+      border-radius: 1.25rem !important;
+    }
+
+    html[data-theme="cyber"] #pinned-notice-container {
+      background: linear-gradient(130deg, #152b1b, #0d1a11) !important;
+      border-color: #3b8f51 !important;
+    }
+
+    html[data-theme="cloud"] #pinned-notice-container {
+      background: linear-gradient(130deg, #eef8ff, #ffffff) !important;
+      border-color: #b7d7ec !important;
     }
   </style>
 </head>
@@ -813,6 +983,26 @@
       </form>
     </div>
 
+    <div id="modal-add-post" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
+      <form onsubmit="submitNewPost(event)" class="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+        <h3 class="text-sm font-bold">お知らせを作成</h3>
+        <label class="block text-xs text-slate-400">タイトル
+          <input id="post-title-input" required maxlength="160" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs text-slate-400">内容
+          <textarea id="post-content-input" required maxlength="6000" rows="5" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm resize-y"></textarea>
+        </label>
+        <label id="pinned-post-control" class="hidden flex items-center gap-2 text-xs text-slate-300">
+          <input id="post-pinned-toggle" type="checkbox">
+          ホーム最上部に固定
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="document.getElementById('modal-add-post').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
+          <button type="submit" class="flex-1 py-2 bg-indigo-600 rounded-lg text-xs font-semibold text-white">投稿</button>
+        </div>
+      </form>
+    </div>
+
     <div id="modal-edit-profile" class="hidden absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-5">
       <form onsubmit="saveProfile(event)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
         <h3 class="text-sm font-bold">プロフィール編集</h3>
@@ -822,12 +1012,11 @@
         <label class="block text-xs text-slate-400">組・役職
           <input id="profile-edit-class" required maxlength="40" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
         </label>
-        <label class="block text-xs text-slate-400">プロフィール画像
-          <div class="mt-2 flex items-center gap-3">
-            <img id="profile-edit-avatar-preview" alt="" class="w-12 h-12 rounded-full object-cover bg-slate-800">
-            <input id="profile-edit-avatar-file" type="file" accept="image/*" onchange="previewAvatarFile(this, 'profile-edit-avatar-preview')" class="min-w-0 flex-1 text-xs text-slate-300">
-          </div>
-        </label>
+        <fieldset class="space-y-2">
+        <legend class="text-xs text-slate-400">プロフィールアバター</legend>
+        <input id="profile-edit-avatar-key" type="hidden" value="council">
+        <div id="profile-edit-avatar-options" class="grid grid-cols-4 gap-2" role="group" aria-label="プロフィールアバターを選択"></div>
+        </fieldset>
         <div class="flex gap-2">
           <button type="button" onclick="document.getElementById('modal-edit-profile').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs">キャンセル</button>
           <button type="submit" class="flex-1 py-2 bg-indigo-600 rounded-lg text-xs font-semibold">保存</button>
@@ -1109,7 +1298,7 @@
         <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg mb-4">
           <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
         </div>
-        <h1 class="text-2xl font-bold tracking-wide">生徒会ポータル</h1>
+        <h1 class="text-2xl font-bold tracking-wide">筑前生徒会</h1>
       </div>
 
       <div class="space-y-3 mb-6">
@@ -1187,11 +1376,9 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">プロフィール画像 (任意)</label>
-          <div class="flex items-center gap-3">
-            <img id="reg-avatar-preview" alt="" class="w-12 h-12 rounded-full object-cover bg-slate-800">
-            <input type="file" id="reg-avatar-file" accept="image/*" onchange="previewAvatarFile(this, 'reg-avatar-preview')" class="min-w-0 flex-1 text-xs text-slate-300">
-          </div>
+          <span class="mb-2 block text-xs font-medium text-slate-400">アバターを選択</span>
+          <input id="reg-avatar-key" type="hidden" value="council">
+          <div id="reg-avatar-options" class="grid grid-cols-4 gap-2" role="group" aria-label="アバターを選択"></div>
         </div>
 
         <button type="submit" class="w-full mt-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm transition">
@@ -1219,7 +1406,7 @@
         <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
           <li>誹謗中傷や個人情報の投稿は禁止です。</li>
           <li>氏名・投稿・投票・チャット・資料アクセスの記録を運用に必要な範囲で扱います。</li>
-          <li>匿名チャットも特権管理者には発言者が表示されます。</li>
+          <li>匿名チャットも管理者には発言者が表示されます。</li>
           <li>削除したアカウントや投稿は、一定期間管理者が復元できます。</li>
         </ul>
       </div>
@@ -1240,7 +1427,7 @@
           <div class="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
             <i data-lucide="shield" class="w-4 h-4 text-white"></i>
           </div>
-          <span class="font-bold text-sm tracking-wide">生徒会ポータル</span>
+          <span class="font-bold text-sm tracking-wide">筑前生徒会</span>
         </div>
 
         <!-- ログインユーザープロフィール -->
@@ -1260,6 +1447,25 @@
 
         <!-- ================= タブ1: ホーム (フィード) ================= -->
         <div id="tab-home" class="tab-content p-4 space-y-4">
+          <div id="pinned-notice-container" class="hidden bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-3">
+            <div class="flex items-start space-x-3">
+              <i data-lucide="pin" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+              <div class="min-w-0 flex-1 text-xs">
+                <div class="flex justify-between font-bold text-amber-300 mb-0.5">
+                  <span id="notice-title">【重要】校内ポータル運用開始</span>
+                  <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded">お知らせ</span>
+                </div>
+                <p id="notice-content" class="text-slate-300 leading-relaxed">全校生徒および先生方へ：生徒会意見募集・投票・チャット機能の運用を開始しました。</p>
+                <div class="flex justify-between items-center mt-2">
+                  <span class="text-[10px] text-amber-200">固定のお知らせ</span>
+                  <button id="notice-like-button" type="button" aria-label="お知らせにいいね" aria-pressed="false" onclick="toggleLike(this.dataset.postId)" class="flex min-h-11 items-center gap-1 rounded-full px-3 text-pink-500">
+                    <i data-lucide="heart" class="h-4 w-4"></i><span id="notice-like-count">0</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <section aria-labelledby="notification-center-heading" class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-2">
             <div class="flex items-center justify-between gap-2">
               <h2 id="notification-center-heading" class="text-xs font-bold flex items-center gap-1.5">
@@ -1304,39 +1510,6 @@
           </section>
 
           <div id="home-dashboard-view" class="space-y-4">
-          <!-- 重要お知らせ枠 -->
-          <div id="pinned-notice-container" class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-3">
-            <div class="flex items-start space-x-3">
-              <i data-lucide="pin" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
-              <div class="flex-1 text-xs">
-                <div class="flex justify-between font-bold text-amber-300 mb-0.5">
-                  <span id="notice-title">【重要】校内ポータル運用開始</span>
-                  <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded">お知らせ</span>
-                </div>
-                <p id="notice-content" class="text-slate-300 leading-relaxed">全校生徒および先生方へ：生徒会意見募集・投票・チャット機能の運用を開始しました。</p>
-                <div class="flex justify-between items-center mt-2">
-                  <span id="notice-read-state" class="text-[10px] text-amber-200"></span>
-                  <span id="notice-read-count" class="hidden text-[10px] text-amber-200"></span>
-                  <button id="notice-read-button" type="button" aria-label="既読としてマーク" class="hidden rounded-full p-1.5" onclick="markNoticeRead()"><i data-lucide="check" class="h-4 w-4"></i></button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 新規投稿作成フォーム -->
-          <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3 space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-300">新しい投稿</span>
-              <button onclick="submitNewPost()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition">投稿</button>
-            </div>
-            <label id="pinned-post-control" class="hidden flex items-center gap-2 text-[11px] text-amber-300">
-              <input id="post-pinned-toggle" type="checkbox" class="accent-amber-500">
-              重要なお知らせとして固定
-            </label>
-            <input type="text" id="post-title-input" placeholder="タイトル" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
-            <textarea id="post-content-input" rows="2" placeholder="内容を入力してください..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500 resize-none"></textarea>
-          </div>
-
           <!-- 投稿フィードリスト -->
           <div id="feed-posts-container" class="space-y-4">
             <!-- JavaScriptで動的生成 -->
@@ -1346,17 +1519,22 @@
 
         <!-- ================= タブ2: 議事録・ファイル ================= -->
         <div id="tab-files" class="tab-content p-4 space-y-3">
-          <div class="flex justify-between items-center mb-2">
+          <section id="document-filter-panel" class="document-filter-panel space-y-2">
+            <label class="sr-only" for="document-search">資料を検索</label>
+            <input id="document-search" type="search" aria-expanded="false" onfocus="setDocumentFiltersExpanded(true)" oninput="renderDocuments()" placeholder="資料を検索" class="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm">
+            <div class="document-filter-fields">
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <label class="sr-only" for="document-category-filter">分類</label>
+                <select id="document-category-filter" onchange="renderDocuments()" aria-label="分類" class="min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs"><option value="">すべての分類</option></select>
+                <label class="sr-only" for="document-list-mode">資料</label>
+                <select id="document-list-mode" onchange="renderDocuments()" aria-label="資料の表示方法" class="min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs"><option value="all">すべての資料</option><option value="favorites">お気に入り</option><option value="recent">最近閲覧</option><option value="archives">年度アーカイブ</option></select>
+                <label class="sr-only" for="document-year-filter">年度</label>
+                <select id="document-year-filter" onchange="renderDocuments()" aria-label="年度" class="col-span-2 rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs"><option value="">すべての年度</option></select>
+              </div>
+            </div>
+          </section>
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">共有資料・議事録</h3>
-            <button id="document-add-button" onclick="showAddDocumentModal()" class="hidden text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
-              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 追加
-            </button>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <input id="document-search" type="search" oninput="renderDocuments()" placeholder="資料を検索" class="min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs">
-            <select id="document-category-filter" onchange="renderDocuments()" class="min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs"><option value="">すべての分類</option></select>
-            <select id="document-year-filter" onchange="renderDocuments()" class="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs"><option value="">すべての年度</option></select>
-            <select id="document-list-mode" onchange="renderDocuments()" class="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs"><option value="all">すべての資料</option><option value="favorites">お気に入り</option><option value="recent">最近閲覧</option><option value="archives">年度アーカイブ</option></select>
           </div>
 
           <div id="documents-list-container" class="space-y-3">
@@ -1368,9 +1546,6 @@
         <div id="tab-vote" class="tab-content p-4 space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">進行中の決議・アンケート</h3>
-            <button id="poll-create-button" onclick="showAddPollModal()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" style="display:none">
-              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 新規作成
-            </button>
           </div>
 
           <div id="polls-list-container" class="space-y-4">
@@ -1384,11 +1559,13 @@
               <h3 id="calendar-week-label" class="text-sm font-semibold"></h3>
               <button type="button" onclick="jumpCalendarToday()" class="text-xs text-indigo-300">今日</button>
             </div>
-            <div class="flex items-center">
-              <button id="calendar-add-button" type="button" onclick="showAddCalendarEventModal()" aria-label="予定を追加" class="hidden p-2 text-indigo-300"><i data-lucide="plus" class="w-5 h-5"></i></button>
-            </div>
           </div>
-          <div id="calendar-week-days" class="grid grid-cols-7 border-y border-slate-800 py-2"></div>
+          <div class="calendar-week-navigation items-center gap-1">
+            <button type="button" onclick="shiftCalendarWeek(-1)" aria-label="前の週" class="min-h-11 w-9 rounded-lg text-slate-400 hover:bg-slate-800">＜</button>
+            <div id="calendar-week-days-desktop" class="grid flex-1 grid-cols-7 border-y border-slate-800 py-2"></div>
+            <button type="button" onclick="shiftCalendarWeek(1)" aria-label="次の週" class="min-h-11 w-9 rounded-lg text-slate-400 hover:bg-slate-800">＞</button>
+          </div>
+          <div id="calendar-week-days" class="grid grid-cols-7 border-y border-slate-800 py-2 md:hidden"></div>
           <div class="flex items-center justify-between">
             <h4 id="calendar-selected-label" class="text-xs font-semibold text-slate-200"></h4>
             <span id="calendar-event-count" class="text-[10px] text-slate-500"></span>
@@ -1397,7 +1574,6 @@
           <section class="border-t border-slate-700 pt-4 space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold text-slate-200">議事録・決定事項</h3>
-              <button id="minutes-add-button" type="button" onclick="showMeetingMinutesModal()" class="hidden rounded-lg bg-indigo-600 px-3 py-2 text-[10px] font-semibold text-white">議事録を作成</button>
             </div>
             <div class="flex gap-2">
               <select id="minutes-year-filter" onchange="renderMeetingMinutes()" class="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-[10px]"><option value="">すべての年度</option></select>
@@ -1469,11 +1645,13 @@
           <section class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
             <h3 class="text-xs font-bold text-slate-200">表示・通知</h3>
             <label class="flex items-center justify-between gap-3 text-xs text-slate-300">
-              <span>ダークモード</span>
-              <span class="ios-switch">
-                <input id="theme-toggle" type="checkbox" role="switch" aria-label="ダークモード" onchange="setTheme(this.checked ? 'dark' : 'light')">
-                <span aria-hidden="true"></span>
-              </span>
+              <span id="theme-select-label">テーマ</span>
+              <select id="theme-select" aria-labelledby="theme-select-label" onchange="setTheme(this.value)" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs">
+                <option value="light">ライト</option>
+                <option value="dark">ダーク</option>
+                <option value="cyber">サイバー</option>
+                <option value="cloud">クラウド</option>
+              </select>
             </label>
             <label class="flex items-center justify-between gap-3 text-xs text-slate-300">
               <span>Webプッシュ通知</span>
@@ -1586,15 +1764,16 @@
     </main>
     <div id="floating-actions" class="floating-actions hidden">
       <div id="floating-actions-menu" class="floating-actions-menu" aria-hidden="true">
-        <button type="button" class="floating-action-item" onclick="runFloatingAction('document')"><i data-lucide="file-plus" class="h-4 w-4"></i><span>資料追加</span></button>
-        <button type="button" class="floating-action-item" onclick="runFloatingAction('poll')"><i data-lucide="chart-no-axes-column-increasing" class="h-4 w-4"></i><span>投票作成</span></button>
-        <button type="button" class="floating-action-item" onclick="runFloatingAction('calendar')"><i data-lucide="calendar-plus" class="h-4 w-4"></i><span>予定追加</span></button>
+      <button type="button" data-floating-action="document" class="floating-action-item" onclick="runFloatingAction('document')"><i data-lucide="file-plus" class="h-4 w-4"></i><span>資料</span></button>
+      <button type="button" data-floating-action="poll" class="floating-action-item" onclick="runFloatingAction('poll')"><i data-lucide="chart-no-axes-column-increasing" class="h-4 w-4"></i><span>投票</span></button>
+      <button type="button" data-floating-action="calendar" class="floating-action-item" onclick="runFloatingAction('calendar')"><i data-lucide="calendar-plus" class="h-4 w-4"></i><span>予定</span></button>
+      <button type="button" data-floating-action="post" class="floating-action-item" onclick="runFloatingAction('post')"><i data-lucide="megaphone" class="h-4 w-4"></i><span>お知らせ</span></button>
+      <button type="button" data-floating-action="minutes" class="floating-action-item" onclick="runFloatingAction('minutes')"><i data-lucide="clipboard-list" class="h-4 w-4"></i><span>議事録</span></button>
       </div>
       <button id="floating-actions-trigger" type="button" class="floating-action-trigger" aria-label="作成メニュー" aria-expanded="false">
         <i data-lucide="plus" class="h-6 w-6"></i>
       </button>
     </div>
-    <div id="read-confirmation" class="hidden" aria-hidden="true"><span><i data-lucide="check" class="h-9 w-9"></i></span></div>
   </div>
 
   <!-- JavaScript アプリケーションコアエンジン -->
@@ -1615,7 +1794,6 @@
     let lastNotificationRefreshAt = 0;
     let lastTaskRefreshAt = 0;
     let calendarSelectedDate = new Date();
-    let pendingAvatarFile = null;
     let taskProjects = [];
     let projectTasks = [];
     let taskMembers = [];
@@ -1624,10 +1802,17 @@
     let notificationLimit = 30;
     let cachedDocuments = [];
     let activeTabId = 'tab-home';
-    const PUSH_VAPID_PUBLIC_KEY = '';
-    const avatarUrlCache = new Map();
-    const avatarFileByInput = new WeakMap();
-    const compressedAvatarFiles = new WeakSet();
+    const PUSH_VAPID_PUBLIC_KEY = 'BMdiTyQiyPymwdiw3UB_Q2nQP4qPbX_lIjIpRNyk9H1q5ODOPZCd5VQuaWJJXes7VhH2fj3tuL4a-QcoYgE3_ao';
+    const avatarPresets = {
+      council: { label: '生徒会', color: '#244e6c', shape: '<path d="M50 13 77 24v23c0 18-11 31-27 40C34 78 23 65 23 47V24z" fill="#fff"/><path d="m50 29 4.8 10 11 1.6-8 7.8 1.9 11L50 54l-9.7 5.4 1.9-11-8-7.8 11-1.6z" fill="#244e6c"/>' },
+      blue: { label: '青', color: '#496f9a', shape: '<circle cx="50" cy="37" r="15" fill="#fff"/><path d="M22 83c2-17 13-27 28-27s26 10 28 27" fill="#fff"/>' },
+      green: { label: '緑', color: '#477d67', shape: '<circle cx="50" cy="37" r="15" fill="#fff"/><path d="M22 83c2-17 13-27 28-27s26 10 28 27" fill="#fff"/>' },
+      rose: { label: '赤', color: '#a65e68', shape: '<circle cx="50" cy="37" r="15" fill="#fff"/><path d="M22 83c2-17 13-27 28-27s26 10 28 27" fill="#fff"/>' },
+      cat: { label: 'ねこ', color: '#77658f', shape: '<path d="m27 38-3-19 20 11a37 37 0 0 1 12 0l20-11-3 19a27 27 0 1 1-46 0" fill="#fff"/><circle cx="40" cy="47" r="2.5" fill="#77658f"/><circle cx="60" cy="47" r="2.5" fill="#77658f"/><path d="m46 57 4 3 4-3" fill="none" stroke="#77658f" stroke-width="3" stroke-linecap="round"/>' },
+      fox: { label: 'きつね', color: '#a56c3b', shape: '<path d="m50 17 30 18-5 29-25 20-25-20-5-29z" fill="#fff"/><path d="M20 35 50 53 80 35 75 64 50 84 25 64z" fill="#f2bb79"/><circle cx="40" cy="47" r="2.5" fill="#a56c3b"/><circle cx="60" cy="47" r="2.5" fill="#a56c3b"/>' },
+      rabbit: { label: 'うさぎ', color: '#547d9c', shape: '<ellipse cx="39" cy="28" rx="9" ry="22" transform="rotate(-12 39 28)" fill="#fff"/><ellipse cx="61" cy="28" rx="9" ry="22" transform="rotate(12 61 28)" fill="#fff"/><circle cx="50" cy="56" r="27" fill="#fff"/><circle cx="41" cy="54" r="2.5" fill="#547d9c"/><circle cx="59" cy="54" r="2.5" fill="#547d9c"/><path d="m47 63 3 3 3-3" fill="none" stroke="#547d9c" stroke-width="3" stroke-linecap="round"/>' },
+      cloud: { label: 'くも', color: '#5287a6', shape: '<path d="M28 70a14 14 0 0 1-2-28 25 25 0 0 1 47-4 17 17 0 0 1 0 32z" fill="#fff"/><circle cx="43" cy="54" r="2.5" fill="#5287a6"/><circle cx="59" cy="54" r="2.5" fill="#5287a6"/><path d="M45 62q6 6 12 0" fill="none" stroke="#5287a6" stroke-width="3" stroke-linecap="round"/>' }
+    };
 
     // ローカル状態管理用初期状態（Supabase未設定時のフォールバック用）
     let state = {
@@ -1649,161 +1834,50 @@
       }
     }
 
-    async function compressAvatarImage(file) {
-      if (compressedAvatarFiles.has(file)) return file;
-      if (file.size > 5 * 1024 * 1024) throw new Error('画像は5MB以下にしてください');
+    function avatarSource(key) {
+      const preset = avatarPresets[key] || avatarPresets.council;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="50" fill="${preset.color}"/>${preset.shape}</svg>`;
+      return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    }
 
-      let drawable;
-      let objectUrl = null;
-      if ('createImageBitmap' in window) {
-        try {
-          drawable = await createImageBitmap(file);
-        } catch {
-          drawable = null;
-        }
-      }
-      if (!drawable) {
-        objectUrl = URL.createObjectURL(file);
-        const image = new Image();
-        try {
-          await new Promise((resolve, reject) => {
-            image.onload = resolve;
-            image.onerror = reject;
-            image.src = objectUrl;
-          });
-        } catch {
-          URL.revokeObjectURL(objectUrl);
-          throw new Error('この画像形式を読み込めません。JPEG、PNG、WebP画像を選択してください');
-        }
-        drawable = image;
-      }
+    function profileAvatarSource(profile) {
+      if (avatarPresets[profile?.avatar_key]) return avatarSource(profile.avatar_key);
+      return safeImageUrl(profile?.avatar_url) || avatarSource('council');
+    }
 
-      const ratio = Math.min(1, 400 / Math.max(drawable.width, drawable.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(drawable.width * ratio));
-      canvas.height = Math.max(1, Math.round(drawable.height * ratio));
-      const context = canvas.getContext('2d');
-      if (!context) {
-        if ('close' in drawable) drawable.close();
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
-        throw new Error('画像を圧縮できませんでした');
-      }
-      context.drawImage(drawable, 0, 0, canvas.width, canvas.height);
-      if ('close' in drawable) drawable.close();
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
-      if (!blob) throw new Error('画像を圧縮できませんでした');
-      const name = file.name.replace(/\.[^.]+$/, '') || 'avatar';
-      const compressed = new File([blob], `${name}.jpg`, {
-        type: 'image/jpeg',
-        lastModified: Date.now()
+    function selectAvatar(prefix, key) {
+      if (!avatarPresets[key]) return;
+      const input = document.getElementById(`${prefix}-avatar-key`);
+      input.value = key;
+      document.querySelectorAll(`#${prefix}-avatar-options [data-avatar-key]`).forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.avatarKey === key));
       });
-      compressedAvatarFiles.add(compressed);
-      return compressed;
     }
 
-    async function selectedAvatarFile(input) {
-      const file = input.files?.[0];
-      if (!file) return null;
-      const compressed = avatarFileByInput.get(input);
-      if (compressed && compressed.name.startsWith((file.name.replace(/\.[^.]+$/, '') || 'avatar') + '.')) {
-        return compressed;
-      }
-      return compressAvatarImage(file);
+    function initializeAvatarPickers() {
+      ['reg', 'profile-edit'].forEach(prefix => {
+        const container = document.getElementById(`${prefix}-avatar-options`);
+        container.replaceChildren(...Object.entries(avatarPresets).map(([key, preset]) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'avatar-option flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 p-2 text-[10px] text-slate-300';
+          button.dataset.avatarKey = key;
+          button.setAttribute('aria-label', `${preset.label}アバター`);
+          button.setAttribute('aria-pressed', 'false');
+          button.innerHTML = `<img src="${avatarSource(key)}" alt="" class="h-8 w-8 rounded-full"><span>${preset.label}</span>`;
+          button.addEventListener('click', () => selectAvatar(prefix, key));
+          return button;
+        }));
+        selectAvatar(prefix, document.getElementById(`${prefix}-avatar-key`).value || 'council');
+      });
     }
 
-    async function previewAvatarFile(input, previewId) {
-      const preview = document.getElementById(previewId);
-      if (preview.dataset.previewUrl) URL.revokeObjectURL(preview.dataset.previewUrl);
-      delete preview.dataset.previewUrl;
-      const file = input.files[0];
-      const requestId = Number(input.dataset.previewRequest || 0) + 1;
-      input.dataset.previewRequest = String(requestId);
-      avatarFileByInput.delete(input);
-      if (!file) {
-        preview.removeAttribute('src');
-        delete preview.dataset.previewUrl;
-        return;
-      }
-      let compressed;
-      try {
-        compressed = await compressAvatarImage(file);
-      } catch (error) {
-        if (input.dataset.previewRequest !== String(requestId)) return;
-        showToast(error.message);
-        input.value = '';
-        preview.removeAttribute('src');
-        return;
-      }
-      if (input.dataset.previewRequest !== String(requestId)) return;
-      avatarFileByInput.set(input, compressed);
-      const previewUrl = URL.createObjectURL(compressed);
-      preview.dataset.previewUrl = previewUrl;
-      preview.src = previewUrl;
+    function isAdmin() {
+      return state.currentUser?.role === 'admin';
     }
 
-    async function applyAvatarUrls(profiles) {
-      const paths = [...new Set(profiles.map(profile => profile?.avatar_path).filter(Boolean))];
-      const now = Date.now();
-      const missingPaths = paths.filter(path => !avatarUrlCache.has(path) || avatarUrlCache.get(path).expiresAt <= now);
-      if (missingPaths.length) {
-        const { data, error } = await supabaseClient.storage
-          .from('profile-avatars')
-          .createSignedUrls(missingPaths, 3600);
-        if (error) console.error('Avatar URL error:', error);
-        for (const signedUrl of data || []) {
-          if (signedUrl.signedUrl) {
-            avatarUrlCache.set(signedUrl.path, {
-              url: signedUrl.signedUrl,
-              expiresAt: now + 55 * 60 * 1000
-            });
-          }
-        }
-      }
-      for (const profile of profiles) {
-        if (profile?.avatar_path) {
-          profile.avatar_url = avatarUrlCache.get(profile.avatar_path)?.url || '';
-        }
-      }
-    }
-
-    async function uploadProfileAvatar(file) {
-      if (!file) return null;
-      const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
-      if (!supportedTypes.includes(file.type)) return 'JPG、PNG、WebP、GIF、HEIC形式の画像を選択してください';
-      if (file.size > 5 * 1024 * 1024) return '画像は5MB以下にしてください';
-      let compressedFile;
-      try {
-        compressedFile = await compressAvatarImage(file);
-      } catch (error) {
-        return error.message;
-      }
-
-      const profile = state.currentUser;
-      const safeName = compressedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const path = `${profile.id}/${crypto.randomUUID()}-${safeName}`;
-      const { error: uploadError } = await supabaseClient.storage
-        .from('profile-avatars')
-        .upload(path, compressedFile, { contentType: 'image/jpeg', upsert: false });
-      if (uploadError) return `画像をアップロードできませんでした: ${uploadError.message}`;
-
-      const { data: updatedProfile, error: updateError } = await supabaseClient.from('profiles')
-        .update({ avatar_path: path, avatar_url: null })
-        .eq('id', profile.id)
-        .select('*')
-        .single();
-      if (updateError) {
-        await supabaseClient.storage.from('profile-avatars').remove([path]);
-        return `プロフィール画像を保存できませんでした: ${updateError.message}`;
-      }
-
-      state.currentUser = updatedProfile;
-      if (profile.avatar_path) {
-        avatarUrlCache.delete(profile.avatar_path);
-        await supabaseClient.storage.from('profile-avatars').remove([profile.avatar_path]);
-      }
-      return null;
+    function isOfficer() {
+      return state.currentUser && ['officer', 'admin'].includes(state.currentUser.role);
     }
 
     async function addAuditLog(action, resourceType = null, resourceId = null) {
@@ -1814,7 +1888,7 @@
         event_resource_id: resourceId
       });
       if (error) console.error('Audit log error:', error);
-      if (['admin', 'superadmin'].includes(state.currentUser.role)) await renderAuditLogs();
+      if (isAdmin()) await renderAuditLogs();
     }
 
     function showToast(msg) {
@@ -1825,10 +1899,10 @@
     }
 
     function setTheme(theme, persist = true) {
-      if (!['light', 'dark'].includes(theme)) return;
+      if (!['light', 'dark', 'cyber', 'cloud'].includes(theme)) return;
       document.documentElement.dataset.theme = theme;
-      const toggle = document.getElementById('theme-toggle');
-      if (toggle) toggle.checked = theme === 'dark';
+      const select = document.getElementById('theme-select');
+      if (select) select.value = theme;
       if (persist) {
         try {
           localStorage.setItem('seitokai-theme', theme);
@@ -1846,20 +1920,8 @@
       } catch (error) {
         console.error('Theme preference lookup error:', error);
       }
-      if (!['light', 'dark'].includes(savedTheme)) savedTheme = null;
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      setTheme(savedTheme || (mediaQuery.matches ? 'dark' : 'light'), false);
-      const onSystemThemeChange = event => {
-        let preference;
-        try {
-          preference = localStorage.getItem('seitokai-theme');
-        } catch (error) {
-          console.error('Theme preference lookup error:', error);
-        }
-        if (!preference) setTheme(event.matches ? 'dark' : 'light', false);
-      };
-      if (mediaQuery.addEventListener) mediaQuery.addEventListener('change', onSystemThemeChange);
-      else mediaQuery.addListener(onSystemThemeChange);
+      if (!['light', 'dark', 'cyber', 'cloud'].includes(savedTheme)) savedTheme = 'light';
+      setTheme(savedTheme, false);
     }
 
     function decodeApplicationServerKey(value) {
@@ -1870,18 +1932,27 @@
 
     async function toggleWebPush(toggle) {
       if (!toggle.checked) {
+        let subscription = null;
         try {
           const registration = await navigator.serviceWorker?.getRegistration();
-          const subscription = await registration?.pushManager.getSubscription();
+          subscription = await registration?.pushManager.getSubscription();
           if (subscription && !(await subscription.unsubscribe())) {
-            toggle.checked = true;
-            return showToast('通知を解除できませんでした');
+            throw new Error('ブラウザーが購読解除を拒否しました');
           }
-          localStorage.removeItem('seitokai-web-push-enabled');
+          if (subscription && state.currentUser && supabaseClient) {
+            const { error } = await supabaseClient.from('push_subscriptions')
+              .delete()
+              .eq('user_id', state.currentUser.id)
+              .eq('endpoint', subscription.endpoint);
+            if (error) {
+              console.error('Push subscription removal error:', error);
+              return showToast('端末の通知は解除しましたが、サーバー上の購読情報を削除できませんでした');
+            }
+          }
         } catch (error) {
-          toggle.checked = true;
           console.error('Push unsubscribe error:', error);
-          return showToast('通知を解除できませんでした');
+          toggle.checked = Boolean(subscription);
+          return showToast(`通知を解除できませんでした: ${error.message}`);
         }
         return;
       }
@@ -1891,32 +1962,56 @@
         return showToast('このブラウザーはWebプッシュ通知に対応していません');
       }
 
+      let newlyCreatedSubscription = null;
       try {
-        const permission = Notification.permission === 'default'
-          ? await Notification.requestPermission()
-          : Notification.permission;
+        const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           toggle.checked = false;
           return showToast(permission === 'denied' ? 'ブラウザー設定で通知を許可してください' : '通知は有効になりませんでした');
         }
 
         const registration = await navigator.serviceWorker.register('./service-worker.js');
+        await navigator.serviceWorker.ready;
         let subscription = await registration.pushManager.getSubscription();
         if (!subscription) {
           if (!PUSH_VAPID_PUBLIC_KEY) {
             toggle.checked = false;
             return showToast('通知配信にはプッシュ公開鍵の設定が必要です');
           }
-          subscription = await registration.pushManager.subscribe({
+          newlyCreatedSubscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: decodeApplicationServerKey(PUSH_VAPID_PUBLIC_KEY)
           });
+          subscription = newlyCreatedSubscription;
         }
-        localStorage.setItem('seitokai-web-push-enabled', 'true');
+        if (!supabaseClient || !state.currentUser) throw new Error('ログイン状態を確認できません');
+        const serializedSubscription = subscription.toJSON();
+        const keys = serializedSubscription.keys;
+        if (!serializedSubscription.endpoint || !keys?.p256dh || !keys.auth) {
+          throw new Error('ブラウザーから購読情報を取得できませんでした');
+        }
+        const { error: saveError } = await supabaseClient.from('push_subscriptions')
+          .upsert({
+            user_id: state.currentUser.id,
+            endpoint: serializedSubscription.endpoint,
+            p256dh: keys.p256dh,
+            auth_key: keys.auth,
+            expiration_time: serializedSubscription.expirationTime
+              ? new Date(serializedSubscription.expirationTime).toISOString()
+              : null
+          }, { onConflict: 'endpoint' });
+        if (saveError) throw saveError;
         toggle.checked = true;
-        console.info('Web Push subscription is ready.');
-        showToast('この端末で通知を受け取る準備ができました');
+        console.info('Web Push subscription saved.');
+        showToast('この端末の通知を設定しました');
       } catch (error) {
+        if (newlyCreatedSubscription) {
+          try {
+            await newlyCreatedSubscription.unsubscribe();
+          } catch (unsubscribeError) {
+            console.error('Failed to clean up incomplete push subscription:', unsubscribeError);
+          }
+        }
         toggle.checked = false;
         console.error('Web Push setup error:', error);
         showToast(`通知を設定できませんでした: ${error.message}`);
@@ -1932,7 +2027,7 @@
       try {
         const registration = await navigator.serviceWorker.getRegistration();
         const subscription = await registration?.pushManager.getSubscription();
-        toggle.checked = Boolean(subscription) && localStorage.getItem('seitokai-web-push-enabled') === 'true';
+        toggle.checked = Boolean(subscription);
       } catch (error) {
         console.error('Web Push status lookup error:', error);
       }
@@ -1996,7 +2091,7 @@
         return false;
       }
 
-      const profileChanged = ['full_name', 'grade', 'class_name', 'avatar_url', 'avatar_path', 'role']
+      const profileChanged = ['full_name', 'grade', 'class_name', 'avatar_url', 'avatar_path', 'avatar_key', 'role']
         .some(key => profile[key] !== state.currentUser[key]);
       state.currentUser = profile;
       if (profileChanged) renderAppView();
@@ -2050,24 +2145,10 @@
         return;
       }
 
-      if (profile.status === 'pending' && pendingAvatarFile) {
-        state.currentUser = profile;
-        const file = pendingAvatarFile;
-        pendingAvatarFile = null;
-        const avatarError = await uploadProfileAvatar(file);
-        if (avatarError) showToast(avatarError);
-      }
-
       if (profile.status === 'approved') {
         clearInterval(pendingStatusTimer);
         pendingStatusTimer = null;
         state.currentUser = profile;
-        if (pendingAvatarFile) {
-          const file = pendingAvatarFile;
-          pendingAvatarFile = null;
-          const avatarError = await uploadProfileAvatar(file);
-          if (avatarError) showToast(avatarError);
-        }
         await addAuditLog('ログインしました');
         renderAppView();
       }
@@ -2076,7 +2157,6 @@
     async function leavePendingView() {
       clearInterval(pendingStatusTimer);
       pendingStatusTimer = null;
-      pendingAvatarFile = null;
       if (supabaseClient) await supabaseClient.auth.signOut();
       showAuthSelection();
     }
@@ -2106,24 +2186,16 @@
       const grade = document.getElementById('reg-grade').value;
       const className = document.getElementById('reg-class').value.trim();
       const password = document.getElementById('reg-pass').value;
-      try {
-        pendingAvatarFile = await selectedAvatarFile(document.getElementById('reg-avatar-file'));
-      } catch (error) {
-        showToast(error.message);
-        return;
-      }
-
       const { error } = await supabaseClient.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: new URL('.', window.location.href).href,
-          data: { full_name: name, grade, class_name: className }
+          data: { full_name: name, grade, class_name: className, avatar_key: document.getElementById('reg-avatar-key').value }
         }
       });
 
       if (error) {
-        pendingAvatarFile = null;
         alert(`登録できませんでした: ${error.message}`);
         return;
       }
@@ -2190,7 +2262,6 @@
       }
       clearTimeout(idleLogoutTimer);
       idleLogoutTimer = null;
-      pendingAvatarFile = null;
       state.currentUser = null;
       if (supabaseClient) await supabaseClient.auth.signOut();
       showAuthSelection();
@@ -2206,12 +2277,10 @@
       startLiveRefresh();
 
       const user = state.currentUser;
-      await applyAvatarUrls([user]);
-
       // ヘッダー情報設定
       document.getElementById('header-user-name').textContent = user.full_name;
       document.getElementById('header-user-class').textContent = user.grade === 'admin' ? user.class_name : `${user.grade}年 ${user.class_name}`;
-      document.getElementById('header-avatar').src = safeImageUrl(user.avatar_url);
+      document.getElementById('header-avatar').src = profileAvatarSource(user);
 
       // 学年枠線スタイル適用
       const avatarContainer = document.getElementById('header-avatar-container');
@@ -2222,8 +2291,8 @@
       document.getElementById('mypage-class').textContent = user.grade === 'admin' ? user.class_name : `${user.grade}年 ${user.class_name}`;
 
       const roleBadge = document.getElementById('user-role-badge');
-      if (['admin', 'superadmin'].includes(user.role)) {
-        roleBadge.textContent = user.role === 'superadmin' ? '特権管理者 (顧問)' : '管理者 (生徒会役員)';
+      if (isAdmin()) {
+        roleBadge.textContent = '管理者';
         roleBadge.className = 'text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-full font-semibold';
         document.getElementById('admin-only-panel').classList.remove('hidden');
       } else {
@@ -2231,13 +2300,15 @@
         roleBadge.className = 'text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold';
         document.getElementById('admin-only-panel').classList.add('hidden');
       }
-      document.getElementById('pinned-post-control').classList.toggle('hidden', !['admin', 'superadmin'].includes(user.role));
-      const canManage = ['admin', 'superadmin'].includes(user.role);
-      document.getElementById('document-add-button').style.display = canManage ? 'flex' : 'none';
-      document.getElementById('poll-create-button').style.display = ['officer', 'admin', 'superadmin'].includes(user.role) ? 'flex' : 'none';
+      document.getElementById('pinned-post-control').classList.toggle('hidden', !isAdmin());
+      const canManage = isAdmin();
+      document.querySelector('[data-floating-action="document"]').classList.toggle('hidden', !canManage);
+      document.querySelector('[data-floating-action="poll"]').classList.toggle('hidden', !isOfficer());
+      document.querySelector('[data-floating-action="calendar"]').classList.toggle('hidden', !isOfficer());
+      document.querySelector('[data-floating-action="minutes"]').classList.toggle('hidden', !isOfficer());
       const taskManagementPanel = document.getElementById('task-management-panel');
       taskManagementPanel.classList.toggle('hidden', !isOfficer());
-      document.getElementById('organization-add-button').classList.toggle('hidden', !['admin', 'superadmin'].includes(user.role));
+      document.getElementById('organization-add-button').classList.toggle('hidden', !canManage);
       document.getElementById('activity-add-button').classList.toggle('hidden', !isOfficer());
 
       // 全各機能のレンダー
@@ -2247,7 +2318,7 @@
       if (isOfficer()) renderTaskSummary();
       renderOrganizationChart();
       renderCouncilActivities();
-      if (['admin', 'superadmin'].includes(user.role)) renderCouncilHandovers();
+      if (canManage) renderCouncilHandovers();
       renderDocuments();
       renderPolls();
       renderCalendar();
@@ -2276,8 +2347,16 @@
       const target = document.getElementById(tabId);
       const track = document.getElementById('page-track');
       if (!target || !target.classList.contains('tab-content')) return;
+      if (tabId !== 'tab-files') setDocumentFiltersExpanded(false);
       updateActiveTab(tabId);
       track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+    }
+
+    function setDocumentFiltersExpanded(expanded) {
+      const panel = document.getElementById('document-filter-panel');
+      if (!panel) return;
+      panel.classList.toggle('is-expanded', expanded);
+      document.getElementById('document-search').setAttribute('aria-expanded', String(expanded));
     }
 
     function setChatAnonMode(isAnonymous) {
@@ -2298,7 +2377,7 @@
     function runFloatingAction(action) {
       setFloatingActionsOpen(false);
       if (action === 'document') {
-        if (!['admin', 'superadmin'].includes(state.currentUser?.role)) return showToast('資料を追加する権限がありません');
+        if (!isAdmin()) return showToast('資料を追加する権限がありません');
         showAddDocumentModal();
       } else if (action === 'poll') {
         if (!isOfficer()) return showToast('投票を作成する権限がありません');
@@ -2306,6 +2385,14 @@
       } else if (action === 'calendar') {
         if (!isOfficer()) return showToast('予定を追加する権限がありません');
         showAddCalendarEventModal();
+      } else if (action === 'post') {
+        document.getElementById('post-title-input').value = '';
+        document.getElementById('post-content-input').value = '';
+        document.getElementById('post-pinned-toggle').checked = false;
+        document.getElementById('modal-add-post').classList.remove('hidden');
+      } else if (action === 'minutes') {
+        if (!isOfficer()) return showToast('議事録を作成する権限がありません');
+        showMeetingMinutesModal();
       }
     }
 
@@ -2387,31 +2474,11 @@
       document.addEventListener('keydown', event => {
         if (event.key === 'Escape') setFloatingActionsOpen(false);
       });
+      document.addEventListener('pointerdown', event => {
+        const filterPanel = document.getElementById('document-filter-panel');
+        if (!filterPanel.contains(event.target)) setDocumentFiltersExpanded(false);
+      });
 
-      const lastTapByPost = new Map();
-      const handlePostTap = event => {
-        if (event.target.closest('button, a, input, textarea, select, form, label')) return;
-        const card = event.target.closest('[data-post-card]');
-        if (!card) return;
-        const postId = card.dataset.postCard;
-        const now = performance.now();
-        const previousTap = lastTapByPost.get(postId) || 0;
-        if (now - previousTap < 360) {
-          lastTapByPost.delete(postId);
-          markPostRead(postId);
-        } else {
-          lastTapByPost.set(postId, now);
-          setTimeout(() => {
-            if (lastTapByPost.get(postId) === now) lastTapByPost.delete(postId);
-          }, 400);
-        }
-      };
-      document.getElementById('feed-posts-container').addEventListener('pointerup', handlePostTap);
-      document.getElementById('pinned-notice-container').addEventListener('pointerup', handlePostTap);
-    }
-
-    function isOfficer() {
-      return state.currentUser && ['officer', 'admin', 'superadmin'].includes(state.currentUser.role);
     }
 
     async function renderNotifications(force = false) {
@@ -2609,7 +2676,7 @@
           .select('id, full_name, grade, class_name')
           .eq('status', 'approved')
           .is('deleted_at', null)
-          .in('role', ['officer', 'admin', 'superadmin'])
+          .in('role', ['officer', 'admin'])
           .order('full_name')
       ]);
       if (projectsResult.error || membersResult.error) {
@@ -2683,7 +2750,7 @@
                 ${task.description ? `<p class="mt-2 whitespace-pre-wrap text-[11px] text-slate-300">${escapeHtml(task.description)}</p>` : ''}
                 ${task.minutes?.title ? `<p class="mt-1 text-[9px] text-indigo-300">議事録から作成: ${escapeHtml(task.minutes.title)}</p>` : ''}
                 ${task.deleted_at
-                  ? `<div class="mt-2 flex items-center justify-between text-[10px]"><span class="text-rose-300">削除済み</span>${['admin', 'superadmin'].includes(state.currentUser.role) ? `<button type="button" onclick="restoreProjectTask('${task.id}')" class="text-indigo-300">復元</button>` : ''}</div>`
+                  ? `<div class="mt-2 flex items-center justify-between text-[10px]"><span class="text-rose-300">削除済み</span>${isAdmin() ? `<button type="button" onclick="restoreProjectTask('${task.id}')" class="text-indigo-300">復元</button>` : ''}</div>`
                   : `<div class="mt-2 flex items-center justify-between gap-2">
                     <select aria-label="タスクの状態" onchange="setProjectTaskStatus('${task.id}', this.value)" class="min-w-0 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px]">
                       ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${task.status === value ? 'selected' : ''}>${label}</option>`).join('')}
@@ -2909,22 +2976,16 @@
     function showProfileEditor() {
       document.getElementById('profile-edit-name').value = state.currentUser.full_name || '';
       document.getElementById('profile-edit-class').value = state.currentUser.class_name || '';
-      document.getElementById('profile-edit-avatar-file').value = '';
-      document.getElementById('profile-edit-avatar-preview').src = document.getElementById('header-avatar').src;
+      selectAvatar('profile-edit', avatarPresets[state.currentUser.avatar_key] ? state.currentUser.avatar_key : 'council');
       document.getElementById('modal-edit-profile').classList.remove('hidden');
     }
 
     async function saveProfile(event) {
       event.preventDefault();
-      let avatarFile;
-      try {
-        avatarFile = await selectedAvatarFile(document.getElementById('profile-edit-avatar-file'));
-      } catch (error) {
-        return showToast(error.message);
-      }
       const updates = {
         full_name: document.getElementById('profile-edit-name').value.trim(),
-        class_name: document.getElementById('profile-edit-class').value.trim()
+        class_name: document.getElementById('profile-edit-class').value.trim(),
+        avatar_key: document.getElementById('profile-edit-avatar-key').value
       };
       const { data: profile, error } = await supabaseClient.from('profiles')
         .update(updates)
@@ -2932,13 +2993,11 @@
         .select('*')
         .single();
       if (error) return showToast(`プロフィールを保存できませんでした: ${error.message}`);
-
       state.currentUser = profile;
-      const avatarError = await uploadProfileAvatar(avatarFile);
       document.getElementById('modal-edit-profile').classList.add('hidden');
       await addAuditLog('プロフィールを更新しました', 'profile', profile.id);
       await renderAppView();
-      showToast(avatarError || 'プロフィールを保存しました');
+      showToast('プロフィールを保存しました');
     }
 
     /* ===================================================
@@ -2946,12 +3005,13 @@
        =================================================== */
 
     // --- 投稿機能 ---
-    async function submitNewPost() {
+    async function submitNewPost(event) {
+      event.preventDefault();
       const title = document.getElementById('post-title-input').value.trim();
       const content = document.getElementById('post-content-input').value.trim();
-      if(!title || !content) return;
+      if (!title || !content || !state.currentUser) return;
 
-      const isPinned = document.getElementById('post-pinned-toggle').checked;
+      const isPinned = isAdmin() && document.getElementById('post-pinned-toggle').checked;
       if (isPinned) {
         const { error: unpinError } = await supabaseClient.from('posts')
           .update({ is_pinned: false })
@@ -2968,8 +3028,8 @@
       });
       if (error) return showToast(`投稿できませんでした: ${error.message}`);
 
-      document.getElementById('post-title-input').value = '';
-      document.getElementById('post-content-input').value = '';
+      document.getElementById('modal-add-post').classList.add('hidden');
+      event.currentTarget.reset();
       document.getElementById('post-pinned-toggle').checked = false;
       await renderPosts();
       await addAuditLog('投稿を作成しました', 'post');
@@ -3027,58 +3087,14 @@
       await renderAdminPanel();
     }
 
-    async function markNoticeRead() {
-      const pinnedPost = state.posts.find(post => post.is_pinned);
-      if (!pinnedPost) return;
-      await markPostRead(pinnedPost.id);
-    }
-
-    async function markPostRead(postId) {
-      const post = state.posts.find(item => item.id === postId);
-      if (!post || !state.currentUser) return;
-      if (post.reads.some(read => read.user_id === state.currentUser.id)) {
-        showReadConfirmation();
-        return;
-      }
-      const { error } = await supabaseClient.from('post_reads').insert({
-        post_id: postId,
-        user_id: state.currentUser.id
-      });
-      if (error && error.code !== '23505') return showToast(`既読を記録できませんでした: ${error.message}`);
-      if (!post.reads.some(read => read.user_id === state.currentUser.id)) {
-        post.reads.push({ user_id: state.currentUser.id });
-      }
-      const card = document.querySelector(`[data-post-card="${CSS.escape(postId)}"]`);
-      if (card) card.dataset.read = 'true';
-      if (post.is_pinned) {
-        document.getElementById('notice-read-state').textContent = '既読';
-        document.getElementById('notice-read-button').classList.add('hidden');
-        if (['admin', 'superadmin'].includes(state.currentUser.role)) {
-          document.getElementById('notice-read-count').textContent = `既読 ${post.reads.length}人`;
-        }
-      }
-      showReadConfirmation();
-    }
-
-    function showReadConfirmation() {
-      const confirmation = document.getElementById('read-confirmation');
-      confirmation.classList.remove('hidden');
-      const icon = confirmation.firstElementChild;
-      icon.style.animation = 'none';
-      void icon.offsetHeight;
-      icon.style.animation = '';
-      setTimeout(() => confirmation.classList.add('hidden'), 680);
-    }
-
     async function renderPosts() {
       const container = document.getElementById('feed-posts-container');
       const { data, error } = await supabaseClient
         .from('posts')
         .select(`id, title, content, is_pinned, created_at,
-          author:profiles!posts_author_id_fkey(id, full_name, grade, class_name, avatar_url, avatar_path),
+          author:profiles!posts_author_id_fkey(id, full_name, grade, class_name, avatar_url, avatar_path, avatar_key),
           likes:post_likes(user_id),
-          comments:post_comments(id, content, created_at, author:profiles!post_comments_author_id_fkey(full_name, grade, avatar_url, avatar_path)) ,
-          reads:post_reads(user_id)`)
+          comments:post_comments(id, content, created_at, author:profiles!post_comments_author_id_fkey(full_name, grade, avatar_url, avatar_path, avatar_key))`)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
       if (error) {
@@ -3086,51 +3102,44 @@
         return;
       }
 
-      const avatarProfiles = data.flatMap(post => [post.author, ...(post.comments || []).map(comment => comment.author)]).filter(Boolean);
-      await applyAvatarUrls(avatarProfiles);
-
       state.posts = data.map(post => ({
         ...post,
-        reads: post.reads || [],
-        author: post.author || { full_name: '削除済みユーザー', grade: '1', avatar_url: '' },
-        likes: post.likes.length,
-        likedBy: post.likes.map(like => like.user_id),
+        author: post.author || { full_name: '削除済みユーザー', grade: '1', avatar_key: 'council' },
+        likes: post.likes?.length || 0,
+        likedBy: (post.likes || []).map(like => like.user_id),
         comments: post.comments || [],
         createdAt: new Date(post.created_at).toLocaleString()
       }));
 
       const pinnedPost = state.posts.find(post => post.is_pinned);
       const notice = document.getElementById('pinned-notice-container');
-      const readState = document.getElementById('notice-read-state');
-      const readCount = document.getElementById('notice-read-count');
-      const readButton = document.getElementById('notice-read-button');
+      const noticeLikeButton = document.getElementById('notice-like-button');
       if (pinnedPost) {
         notice.classList.remove('hidden');
-        notice.dataset.postCard = pinnedPost.id;
-        notice.dataset.read = String(pinnedPost.reads.some(read => read.user_id === state.currentUser.id));
         document.getElementById('notice-title').textContent = pinnedPost.title;
         document.getElementById('notice-content').textContent = pinnedPost.content;
-        const hasRead = pinnedPost.reads.some(read => read.user_id === state.currentUser.id);
-        readState.textContent = hasRead ? '既読' : '未読';
-        const isAdmin = ['admin', 'superadmin'].includes(state.currentUser.role);
-        readCount.classList.toggle('hidden', !isAdmin);
-        readCount.textContent = isAdmin ? `既読 ${pinnedPost.reads.length}人` : '';
-        readButton.classList.toggle('hidden', hasRead);
+        const liked = pinnedPost.likedBy.includes(state.currentUser.id);
+        noticeLikeButton.dataset.postId = pinnedPost.id;
+        noticeLikeButton.setAttribute('aria-pressed', String(liked));
+        noticeLikeButton.setAttribute('aria-label', liked ? 'お知らせのいいねを取り消す' : 'お知らせにいいね');
+        noticeLikeButton.classList.toggle('font-bold', liked);
+        document.getElementById('notice-like-count').textContent = String(pinnedPost.likes);
       } else {
         notice.classList.add('hidden');
       }
 
-      if (state.posts.length === 0) {
+      const feedPosts = state.posts.filter(post => !post.is_pinned);
+      if (feedPosts.length === 0) {
         container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">投稿がまだありません</div>`;
         return;
       }
 
-      container.innerHTML = state.posts.map(post => `
-        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden" data-post-card="${post.id}" data-read="${post.reads.some(read => read.user_id === state.currentUser.id)}">
+      container.innerHTML = feedPosts.map(post => `
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden" data-post-card="${post.id}">
           <div class="p-3 flex items-center justify-between border-b border-slate-700/40">
             <div class="flex items-center space-x-2">
               <div class="w-8 h-8 rounded-full border-2 grade-border-${post.author.grade} p-0.5">
-                <img src="${escapeHtml(safeImageUrl(post.author.avatar_url))}" class="w-full h-full object-cover rounded-full">
+                <img src="${escapeHtml(profileAvatarSource(post.author))}" alt="" class="w-full h-full object-cover rounded-full">
               </div>
               <div>
                 <div class="flex items-center space-x-1.5">
@@ -3140,7 +3149,7 @@
                 <span class="text-[9px] text-slate-400">${post.createdAt}</span>
               </div>
             </div>
-            ${['admin', 'superadmin'].includes(state.currentUser.role) ? `<button onclick="softDeletePost('${post.id}')" aria-label="案件を削除" class="text-slate-400 hover:text-red-400"><i data-lucide="archive-x" class="w-4 h-4"></i></button>` : ''}
+            ${isAdmin() ? `<button onclick="softDeletePost('${post.id}')" aria-label="案件を削除" class="text-slate-400 hover:text-red-400"><i data-lucide="archive-x" class="w-4 h-4"></i></button>` : ''}
           </div>
           <div class="p-3 text-xs leading-relaxed space-y-1">
             <p class="font-semibold text-indigo-300">${escapeHtml(post.title)}</p>
@@ -3149,7 +3158,7 @@
           <div class="px-3 py-2 border-t border-slate-700/40 flex items-center justify-between text-xs text-slate-400">
             <button onclick="toggleLike('${post.id}')" class="flex items-center space-x-1 hover:text-pink-500 transition ${post.likedBy.includes(state.currentUser.id) ? 'text-pink-500 font-bold' : ''}">
               <i data-lucide="heart" class="w-4 h-4"></i>
-              <span>${post.likes} 賛同</span>
+              <span>${post.likes} いいね</span>
             </button>
           </div>
           <div class="px-3 pb-3 space-y-2">
@@ -3306,7 +3315,7 @@
             <div class="flex flex-wrap gap-3 border-t border-slate-700/50 pt-2 text-[10px]">
               <button type="button" onclick="downloadDocument('${escapeHtml(doc.storage_path)}', '${doc.id}')" class="flex items-center gap-1 text-indigo-300"><i data-lucide="download" class="h-3.5 w-3.5"></i>開く</button>
               <button type="button" onclick="showDocumentRevisions('${doc.id}')" class="text-slate-300">更新履歴</button>
-              ${['admin', 'superadmin'].includes(state.currentUser.role) ? `
+              ${isAdmin() ? `
                 <button type="button" onclick="showDocumentEditor('${doc.id}')" class="text-slate-300">情報編集</button>
                 <button type="button" onclick="toggleDocumentArchive('${doc.id}', ${Boolean(doc.archived_at)})" class="text-slate-300">${doc.archived_at ? '復元' : '年度アーカイブ'}</button>
               ` : ''}
@@ -3399,7 +3408,7 @@
           <p class="mt-1 text-[10px] text-slate-500">${new Date(revision.changed_at).toLocaleString('ja-JP')} ・ ${escapeHtml(revision.changer?.full_name || '管理者')}</p>
           <div class="mt-2 flex gap-3 text-[10px]">
             <button type="button" onclick="downloadDocument('${escapeHtml(revision.storage_path)}')" class="text-indigo-300">旧版を開く</button>
-            ${['admin', 'superadmin'].includes(state.currentUser.role) ? `<button type="button" onclick="restoreDocumentRevision('${documentId}', ${revision.id})" class="text-amber-300">この版に戻す</button>` : ''}
+            ${isAdmin() ? `<button type="button" onclick="restoreDocumentRevision('${documentId}', ${revision.id})" class="text-amber-300">この版に戻す</button>` : ''}
           </div>
         </article>
       `).join('') : '<p class="py-4 text-center text-xs text-slate-500">更新履歴はありません</p>';
@@ -3570,7 +3579,7 @@
 
     function shiftCalendarWeek(direction) {
       calendarSelectedDate.setDate(calendarSelectedDate.getDate() + direction * 7);
-      ['calendar-week-label', 'calendar-week-days', 'calendar-events-list'].forEach(id => {
+      ['calendar-week-label', 'calendar-week-days', 'calendar-week-days-desktop', 'calendar-events-list'].forEach(id => {
         const element = document.getElementById(id);
         element.style.setProperty('--calendar-slide-offset', direction > 0 ? '0.75rem' : '-0.75rem');
         element.classList.remove('calendar-swipe-in');
@@ -3641,6 +3650,7 @@
 
     async function renderCalendar() {
       const weekDaysContainer = document.getElementById('calendar-week-days');
+      const desktopWeekDaysContainer = document.getElementById('calendar-week-days-desktop');
       const eventsContainer = document.getElementById('calendar-events-list');
       if (!supabaseClient || !state.currentUser) return;
 
@@ -3654,9 +3664,6 @@
       document.getElementById('calendar-selected-label').textContent = new Intl.DateTimeFormat('ja-JP', {
         month: 'long', day: 'numeric', weekday: 'long'
       }).format(calendarSelectedDate);
-      document.getElementById('calendar-add-button').classList.toggle('hidden',
-        !['officer', 'admin', 'superadmin'].includes(state.currentUser.role));
-      document.getElementById('minutes-add-button').classList.toggle('hidden', !isOfficer());
 
       const { data: events, error } = await supabaseClient.from('calendar_events')
         .select('id, title, description, starts_at, ends_at, response_due_at, created_by, creator:profiles!calendar_events_created_by_fkey(full_name, grade)')
@@ -3666,6 +3673,7 @@
         .order('starts_at', { ascending: true });
       if (error) {
         weekDaysContainer.innerHTML = '';
+        desktopWeekDaysContainer.innerHTML = '';
         eventsContainer.innerHTML = '<div class="py-8 text-center text-xs text-rose-300">予定を読み込めませんでした</div>';
         return;
       }
@@ -3696,7 +3704,7 @@
       });
       const todayKey = calendarDateKey(new Date());
       const selectedKey = calendarDateKey(calendarSelectedDate);
-      weekDaysContainer.innerHTML = Array.from({ length: 7 }, (_, index) => {
+      const weekDaysHtml = Array.from({ length: 7 }, (_, index) => {
         const date = new Date(weekStart);
         date.setDate(weekStart.getDate() + index);
         const key = calendarDateKey(date);
@@ -3711,6 +3719,8 @@
           </button>
         `;
       }).join('');
+      weekDaysContainer.innerHTML = weekDaysHtml;
+      desktopWeekDaysContainer.innerHTML = weekDaysHtml;
 
       const selectedEvents = events.filter(calendarEvent => calendarDateKey(new Date(calendarEvent.starts_at)) === selectedKey);
       document.getElementById('calendar-event-count').textContent = selectedEvents.length ? `${selectedEvents.length}件` : '';
@@ -3724,7 +3734,7 @@
             ? '終日'
             : start.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
           const endText = end ? ` - ${end.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}` : '';
-          const canDelete = ['admin', 'superadmin'].includes(state.currentUser.role)
+          const canDelete = isAdmin()
             || calendarEvent.created_by === state.currentUser.id;
           const counts = eventCounts.get(calendarEvent.id) || { attending: 0, not_attending: 0 };
           const responseOpen = !calendarEvent.response_due_at || new Date(calendarEvent.response_due_at) > new Date();
@@ -3885,7 +3895,7 @@
       fields.heldAt.value = toLocalDateTimeInput(new Date());
       document.getElementById('minutes-form-heading').textContent = minutesId ? '議事録を編集' : '議事録を作成';
       const [membersResult, eventsResult] = await Promise.all([
-        supabaseClient.from('profiles').select('id, full_name').eq('status', 'approved').is('deleted_at', null).in('role', ['officer', 'admin', 'superadmin']).order('full_name'),
+        supabaseClient.from('profiles').select('id, full_name').eq('status', 'approved').is('deleted_at', null).in('role', ['officer', 'admin']).order('full_name'),
         supabaseClient.from('calendar_events').select('id, title, starts_at').is('deleted_at', null).order('starts_at', { ascending: false }).limit(50)
       ]);
       if (membersResult.error || eventsResult.error) return showToast('議事録の入力情報を読み込めませんでした');
@@ -3976,13 +3986,13 @@
       const container = document.getElementById('organization-chart');
       const [unitsResult, profilesResult] = await Promise.all([
         supabaseClient.from('council_units')
-          .select('id, name, description, parent_id, academic_year, members:council_unit_members(profile_id, position_title, member:profiles!council_unit_members_profile_id_fkey(id, full_name, grade, class_name, role, avatar_url, avatar_path))')
+          .select('id, name, description, parent_id, academic_year, members:council_unit_members(profile_id, position_title, member:profiles!council_unit_members_profile_id_fkey(id, full_name, grade, class_name, role, avatar_url, avatar_path, avatar_key))')
           .is('deleted_at', null)
           .order('sort_order'),
         supabaseClient.from('profiles')
-          .select('id, full_name, grade, class_name, role, avatar_url, avatar_path')
+          .select('id, full_name, grade, class_name, role, avatar_url, avatar_path, avatar_key')
           .eq('status', 'approved').is('deleted_at', null)
-          .in('role', ['officer', 'admin', 'superadmin'])
+          .in('role', ['officer', 'admin'])
       ]);
       if (unitsResult.error || profilesResult.error) {
         container.innerHTML = '<p class="text-[10px] text-rose-300">組織図を読み込めませんでした</p>';
@@ -3991,8 +4001,6 @@
         return;
       }
       const membersByRole = profilesResult.data || [];
-      await applyAvatarUrls(membersByRole);
-      await applyAvatarUrls((unitsResult.data || []).flatMap(unit => (unit.members || []).map(item => item.member).filter(Boolean)));
       const yearSelect = document.getElementById('organization-year-filter');
       const previousYear = yearSelect.value;
       const units = unitsResult.data || [];
@@ -4001,11 +4009,11 @@
       yearSelect.value = years.includes(previousYear) ? previousYear : '';
       const filteredUnits = units.filter(unit => !yearSelect.value || unit.academic_year === yearSelect.value);
       const showingCurrentYear = !yearSelect.value || yearSelect.value === councilYearFromDate(new Date());
-      const roleNames = { superadmin: '顧問', admin: '管理者・役員', officer: '生徒会役員' };
+      const roleNames = { admin: '管理者', officer: '生徒会役員' };
       const roleHtml = showingCurrentYear ? Object.entries(roleNames).map(([role, label]) => {
         const roleMembers = membersByRole.filter(member => member.role === role);
         if (!roleMembers.length) return '';
-        return `<section class="rounded-lg border border-slate-700/60 p-2"><h4 class="mb-2 text-[10px] font-semibold text-indigo-300">${label}</h4><div class="flex flex-wrap gap-2">${roleMembers.map(member => organizationMemberButton(member, role === 'superadmin' ? '顧問' : role === 'admin' ? '管理者' : '役員')).join('')}</div></section>`;
+        return `<section class="rounded-lg border border-slate-700/60 p-2"><h4 class="mb-2 text-[10px] font-semibold text-indigo-300">${label}</h4><div class="flex flex-wrap gap-2">${roleMembers.map(member => organizationMemberButton(member, role === 'admin' ? '管理者' : '役員')).join('')}</div></section>`;
       }).join('') : '';
       const unitsById = new Map(units.map(unit => [unit.id, unit]));
       const unitsHtml = filteredUnits.map(unit => `
@@ -4021,21 +4029,22 @@
     }
 
     function organizationMemberButton(member, position) {
-      const avatar = safeImageUrl(member.avatar_url) || 'https://api.dicebear.com/7.x/initials/svg?seed=member';
+      const avatar = profileAvatarSource(member);
       return `<button type="button" onclick="showMemberProfile('${member.id}')" class="flex min-w-0 items-center gap-1.5 rounded-lg bg-slate-900/50 px-2 py-1 text-left"><img src="${escapeHtml(avatar)}" alt="" class="h-6 w-6 rounded-full object-cover"><span class="min-w-0"><span class="block truncate text-[10px] font-medium">${escapeHtml(member.full_name)}</span><span class="block truncate text-[9px] text-slate-500">${escapeHtml(position || 'メンバー')} ・ ${member.grade === 'admin' ? escapeHtml(member.class_name) : `${member.grade}年 ${escapeHtml(member.class_name)}`}</span></span></button>`;
     }
 
     async function showMemberProfile(profileId) {
       const { data: member, error } = await supabaseClient.from('profiles')
-        .select('id, full_name, grade, class_name, role, avatar_url, avatar_path')
+        .select('id, full_name, grade, class_name, role, avatar_url, avatar_path, avatar_key')
         .eq('id', profileId).eq('status', 'approved').is('deleted_at', null).maybeSingle();
       if (error) return showToast(`メンバー情報を取得できませんでした: ${error.message}`);
       if (!member) return showToast('メンバー情報が見つかりません');
-      await applyAvatarUrls([member]);
-      document.getElementById('member-profile-avatar').src = safeImageUrl(member.avatar_url);
+      document.getElementById('member-profile-avatar').src = profileAvatarSource(member);
       document.getElementById('member-profile-name').textContent = member.full_name;
       document.getElementById('member-profile-class').textContent = member.grade === 'admin' ? member.class_name : `${member.grade}年 ${member.class_name}`;
-      document.getElementById('member-profile-role').textContent = ({ superadmin: '顧問', admin: '管理者', officer: '生徒会役員', student: '生徒' })[member.role] || 'メンバー';
+      document.getElementById('member-profile-role').textContent = member.role === 'admin'
+        ? (member.grade === 'admin' ? '管理者・顧問' : '管理者')
+        : ({ officer: '生徒会役員', student: '生徒' })[member.role] || 'メンバー';
       document.getElementById('modal-member-profile').classList.remove('hidden');
     }
 
@@ -4100,7 +4109,7 @@
         && (archiveMode === 'all' || (archiveMode === 'archived' ? Boolean(activity.archived_at) : !activity.archived_at)));
       container.innerHTML = filtered.length ? filtered.map(activity => `
         <article class="rounded-lg border border-slate-700/60 p-2.5">
-          <div class="flex justify-between gap-2"><h4 class="text-[11px] font-semibold">${escapeHtml(activity.title)}</h4><div class="flex gap-2"><time class="shrink-0 text-[9px] text-slate-500">${new Date(`${activity.activity_date}T00:00:00`).toLocaleDateString('ja-JP')}</time>${activity.archived_at && ['admin', 'superadmin'].includes(state.currentUser.role) ? `<button type="button" onclick="restoreCouncilActivity('${activity.id}')" class="text-[9px] text-indigo-300">復元</button>` : ''}</div></div>
+          <div class="flex justify-between gap-2"><h4 class="text-[11px] font-semibold">${escapeHtml(activity.title)}</h4><div class="flex gap-2"><time class="shrink-0 text-[9px] text-slate-500">${new Date(`${activity.activity_date}T00:00:00`).toLocaleDateString('ja-JP')}</time>${activity.archived_at && isAdmin() ? `<button type="button" onclick="restoreCouncilActivity('${activity.id}')" class="text-[9px] text-indigo-300">復元</button>` : ''}</div></div>
           <p class="mt-1 whitespace-pre-wrap text-[10px] text-slate-300">${escapeHtml(activity.description)}</p>
           ${activity.result ? `<p class="mt-1 text-[10px] text-emerald-300">結果: ${escapeHtml(activity.result)}</p>` : ''}
           <p class="mt-1 text-[9px] text-slate-500">${escapeHtml(activity.academic_year)} ・ ${escapeHtml(activity.author?.full_name || '')}${activity.project?.title ? ` ・ ${escapeHtml(activity.project.title)}` : ''}${activity.document?.title ? ` ・ 資料: ${escapeHtml(activity.document.title)}` : ''}</p>
@@ -4199,7 +4208,7 @@
       `;
     }
 
-    // --- チャット機能 (匿名/実名 & 特権管理者表示機能) ---
+    // --- チャット機能 (匿名/実名 & 管理者表示機能) ---
     function toggleChatAnonLabel(checkbox) {
       const isAnonymous = checkbox.checked;
       document.querySelector('.app-container').classList.toggle('is-anonymous', isAnonymous);
@@ -4245,31 +4254,30 @@
           class_name: message.sender_class,
           grade: message.sender_grade,
           avatar_url: message.sender_avatar,
-          avatar_path: message.sender_avatar_path
+          avatar_path: message.sender_avatar_path,
+          avatar_key: message.sender_avatar_key
         },
         isAnonymous: message.is_anonymous,
         isSelf: message.is_self
       }));
-      await applyAvatarUrls(state.messages.map(message => message.sender));
-
       if (!state.messages.length) {
         container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">メッセージはありません</div>`;
         return;
       }
 
-      const isViewerAdmin = ['admin', 'superadmin'].includes(state.currentUser.role);
+      const isViewerAdmin = isAdmin();
 
       container.innerHTML = state.messages.map(msg => {
         const isSelf = msg.isSelf;
         const displayName = msg.sender.full_name;
         let gradeBadge = msg.sender.grade === 'admin' ? '顧問' : msg.sender.grade + '年';
-        let avatarSrc = safeImageUrl(msg.sender.avatar_url) || 'https://api.dicebear.com/7.x/bottts/svg?seed=anonymous';
+        let avatarSrc = profileAvatarSource(msg.sender);
         let gradeClass = msg.sender.grade;
 
         let adminNoteHtml = '';
 
         if (msg.isAnonymous) {
-          if (!isViewerAdmin) avatarSrc = 'https://api.dicebear.com/7.x/bottts/svg?seed=anonymous';
+          if (!isViewerAdmin) avatarSrc = avatarSource('cloud');
           if (isViewerAdmin) adminNoteHtml = `<span class="text-[9px] bg-red-900/80 text-red-200 px-1.5 py-0.5 rounded font-mono ml-1">管理者表示: ${escapeHtml(msg.sender.class_name || '')}</span>`;
         }
 
@@ -4319,6 +4327,7 @@
     let deleteTargetUserId = null;
 
     function deleteUser(userId) {
+      if (!isAdmin()) return showToast('アカウントを削除する権限がありません');
       if (!confirm('このアカウントを削除状態にしますか？')) return;
       deleteTargetUserId = userId;
       document.getElementById('delete-confirm-password').value = '';
@@ -4327,6 +4336,7 @@
 
     async function confirmDeleteUser(event) {
       event.preventDefault();
+      if (!isAdmin() || !deleteTargetUserId) return showToast('アカウントを削除する権限がありません');
       const password = document.getElementById('delete-confirm-password').value;
       const { data: { user: authUser } } = await supabaseClient.auth.getUser();
       if (!authUser?.email) return showToast('ログイン状態を確認できません。');
@@ -4349,6 +4359,7 @@
     }
 
     async function restoreUser(userId) {
+      if (!isAdmin()) return showToast('アカウントを復元する権限がありません');
       const { error } = await supabaseClient.rpc('restore_profile', { target_user: userId });
       if (error) return showToast(`復元できませんでした: ${error.message}`);
       showToast('アカウントを復元しました');
@@ -4356,7 +4367,7 @@
     }
 
     async function changeUserRole(userId, role) {
-      if (state.currentUser.role !== 'superadmin') return;
+      if (!isAdmin()) return showToast('権限を変更する権限がありません');
       const { error } = await supabaseClient.rpc('set_profile_role', {
         target_user: userId,
         next_role: role
@@ -4371,7 +4382,7 @@
     }
 
     async function renderAdminPanel() {
-      if (!supabaseClient || !state.currentUser || !['admin', 'superadmin'].includes(state.currentUser.role)) return;
+      if (!supabaseClient || !state.currentUser || !isAdmin()) return;
       const { data: users, error } = await supabaseClient
         .from('profiles')
         .select('*')
@@ -4380,8 +4391,6 @@
         showToast(`管理情報を取得できませんでした: ${error.message}`);
         return;
       }
-      await applyAvatarUrls(users);
-
       // 承認待ちユーザー
       const pendingContainer = document.getElementById('pending-users-list');
       const pendingUsers = users.filter(u => u.status === 'pending' && !u.deleted_at);
@@ -4393,7 +4402,7 @@
           <div class="flex items-center justify-between p-2 bg-slate-900/60 rounded-lg border border-slate-700/50">
             <div class="flex items-center space-x-2">
               <div class="w-7 h-7 rounded-full border p-0.5 grade-border-${u.grade}">
-                <img src="${escapeHtml(safeImageUrl(u.avatar_url))}" class="w-full h-full object-cover rounded-full">
+                <img src="${escapeHtml(profileAvatarSource(u))}" alt="" class="w-full h-full object-cover rounded-full">
               </div>
               <div>
                 <div class="text-xs font-bold">${escapeHtml(u.full_name)}</div>
@@ -4402,7 +4411,7 @@
             </div>
             <div class="flex space-x-1">
               <button onclick="approveUser('${u.id}')" class="px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded hover:bg-indigo-500">承認</button>
-              <button onclick="deleteUser('${u.id}')" class="px-2 py-1 bg-slate-700 text-slate-300 text-[10px] font-bold rounded hover:bg-red-600">削除</button>
+              ${isAdmin() ? `<button onclick="deleteUser('${u.id}')" class="px-2 py-1 bg-slate-700 text-slate-300 text-[10px] font-bold rounded hover:bg-red-600">削除</button>` : ''}
             </div>
           </div>
         `).join('');
@@ -4419,22 +4428,21 @@
           <div class="flex items-center justify-between p-2 bg-slate-900/40 rounded-lg">
             <div class="flex items-center space-x-2">
               <div class="w-6 h-6 rounded-full border p-0.5 grade-border-${u.grade}">
-                <img src="${escapeHtml(safeImageUrl(u.avatar_url))}" class="w-full h-full object-cover rounded-full">
+                <img src="${escapeHtml(profileAvatarSource(u))}" alt="" class="w-full h-full object-cover rounded-full">
               </div>
               <div class="text-xs">
                 <span class="font-bold">${escapeHtml(u.full_name)}</span>
                 <span class="text-[10px] text-slate-400">(${u.grade === 'admin' ? '顧問' : u.grade + '年'})</span>
               </div>
             </div>
-            ${state.currentUser.role === 'superadmin' && u.id !== state.currentUser.id ? `
+            ${isAdmin() && u.id !== state.currentUser.id ? `
               <select aria-label="${escapeHtml(u.full_name)}の権限" onchange="changeUserRole('${u.id}', this.value)" class="bg-slate-800 border border-slate-700 rounded px-1 py-1 text-[10px]">
                 <option value="student" ${u.role === 'student' ? 'selected' : ''}>生徒</option>
                 <option value="officer" ${u.role === 'officer' ? 'selected' : ''}>役員</option>
                 <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>管理者</option>
-                <option value="superadmin" ${u.role === 'superadmin' ? 'selected' : ''}>特権管理者</option>
               </select>
             ` : ''}
-            ${u.id !== state.currentUser.id ? `
+            ${isAdmin() && u.id !== state.currentUser.id ? `
               <button onclick="deleteUser('${u.id}')" class="text-red-400 hover:text-red-300 p-1 text-[10px]">削除</button>
             ` : `<span class="text-[9px] text-slate-500">自分</span>`}
           </div>
@@ -4472,7 +4480,7 @@
 
     async function renderAuditLogs() {
       const container = document.getElementById('audit-log-container');
-      if (!supabaseClient || !state.currentUser || !['admin', 'superadmin'].includes(state.currentUser.role)) {
+      if (!supabaseClient || !state.currentUser || !isAdmin()) {
         container.innerHTML = `<div>ログ履歴なし</div>`;
         return;
       }
@@ -4545,6 +4553,7 @@
 
     window.onload = async function() {
       initializeTheme();
+      initializeAvatarPickers();
       initSupabase();
       lucide.createIcons();
       setupMobileInteractions();
@@ -4555,4 +4564,4 @@
     };
   </script>
 </body>
-</html>ｓｑ
+</html>

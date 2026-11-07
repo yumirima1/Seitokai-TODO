@@ -1,4 +1,7 @@
 alter table public.profiles add column if not exists avatar_path text;
+alter table public.profiles
+  add column if not exists avatar_key text not null default 'council'
+  check (avatar_key in ('council', 'blue', 'green', 'rose', 'cat', 'fox', 'rabbit', 'cloud'));
 grant update (full_name, class_name, avatar_url, avatar_path) on public.profiles to authenticated;
 
 create or replace view public.chat_messages_feed
@@ -17,7 +20,9 @@ as
          case when m.is_anonymous and not public.app_is_admin()
               then null else p.avatar_url end as sender_avatar,
          case when m.is_anonymous and not public.app_is_admin()
-              then null else p.avatar_path end as sender_avatar_path
+              then null else p.avatar_path end as sender_avatar_path,
+         case when m.is_anonymous and not public.app_is_admin()
+              then null else p.avatar_key end as sender_avatar_key
   from public.chat_messages m
   join public.profiles p on p.id = m.sender_id
   where m.deleted_at is null and public.app_is_approved();
