@@ -426,10 +426,14 @@
       box-shadow: 0 0 0 2px var(--line);
     }
 
-    .calendar-week-navigation { display: none; }
+    .calendar-week-navigation {
+      display: none;
+      align-items: center;
+      gap: 0.25rem;
+    }
 
     @media (min-width: 768px) {
-      .calendar-week-navigation { display: grid; }
+      .calendar-week-navigation { display: flex; }
     }
 
     .floating-action-trigger {
@@ -3098,7 +3102,8 @@
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
       if (error) {
-        container.innerHTML = `<div class="text-center text-xs text-rose-300 py-6">フィードを読み込めませんでした</div>`;
+        console.error('Feed lookup error:', error);
+        container.innerHTML = `<div class="text-center text-xs text-rose-300 py-6">フィードを読み込めませんでした<br><span class="mt-1 block break-words text-[10px]">${escapeHtml(error.message)}</span></div>`;
         return;
       }
 
@@ -3674,7 +3679,8 @@
       if (error) {
         weekDaysContainer.innerHTML = '';
         desktopWeekDaysContainer.innerHTML = '';
-        eventsContainer.innerHTML = '<div class="py-8 text-center text-xs text-rose-300">予定を読み込めませんでした</div>';
+        console.error('Calendar events lookup error:', error);
+        eventsContainer.innerHTML = `<div class="py-8 text-center text-xs text-rose-300">予定を読み込めませんでした<br><span class="mt-1 block break-words text-[10px]">${escapeHtml(error.message)}</span></div>`;
         return;
       }
       const attendanceEventIds = events.map(calendarEvent => calendarEvent.id);
@@ -3686,9 +3692,10 @@
         ])
         : [{ data: [], error: null }, { data: [], error: null }];
       if (attendanceSummaryResult.error || userAttendanceResult.error) {
-        eventsContainer.innerHTML = '<div class="py-8 text-center text-xs text-rose-300">出欠状況を読み込めませんでした</div>';
         if (attendanceSummaryResult.error) console.error('Attendance summary lookup error:', attendanceSummaryResult.error);
         if (userAttendanceResult.error) console.error('User attendance lookup error:', userAttendanceResult.error);
+        const errorMessage = attendanceSummaryResult.error?.message || userAttendanceResult.error?.message || '不明なエラー';
+        eventsContainer.innerHTML = `<div class="py-8 text-center text-xs text-rose-300">出欠状況を読み込めませんでした<br><span class="mt-1 block break-words text-[10px]">${escapeHtml(errorMessage)}</span></div>`;
         return;
       }
       const userResponses = new Map((userAttendanceResult.data || []).map(response => [response.event_id, response.response]));
@@ -3750,16 +3757,19 @@
                 ${calendarEvent.description ? `<p class="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-slate-400">${escapeHtml(calendarEvent.description)}</p>` : ''}
                 <p class="mt-1 text-[10px] text-slate-500">${escapeHtml(calendarEvent.creator?.full_name || '')}</p>
                 <div class="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
-                  <span class="text-slate-400">出欠: ${counts.attending}名参加 ・ ${counts.not_attending}名不参加</span>
+                  <span class="text-slate-400">参加 ${counts.attending}名</span>
                   ${calendarEvent.response_due_at ? `<span class="text-slate-500">回答期限 ${new Date(calendarEvent.response_due_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>` : ''}
                 </div>
                 <div class="mt-1 flex items-center gap-2">
-                  <select id="attendance-${calendarEvent.id}" ${responseOpen ? '' : 'disabled'} class="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px]">
-                    <option value="" ${!myResponse ? 'selected' : ''}>未回答</option>
-                    <option value="attending" ${myResponse === 'attending' ? 'selected' : ''}>参加</option>
-                    <option value="not_attending" ${myResponse === 'not_attending' ? 'selected' : ''}>不参加</option>
-                  </select>
-                  ${responseOpen ? `<button type="button" onclick="saveAttendanceResponse('${calendarEvent.id}')" class="text-indigo-300">回答</button>` : '<span class="text-slate-500">回答締切</span>'}
+                  ${responseOpen
+                    ? `<button id="attendance-${calendarEvent.id}" type="button"
+                        aria-label="${myResponse === 'attending' ? '参加を取り消す' : '参加する'}"
+                        aria-pressed="${myResponse === 'attending'}"
+                        onclick="saveAttendanceResponse('${calendarEvent.id}', '${myResponse === 'attending' ? '' : 'attending'}')"
+                        class="flex min-h-9 min-w-16 items-center justify-center gap-1 rounded-full border px-3 text-[10px] font-semibold ${myResponse === 'attending' ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-slate-700 text-slate-400'}">
+                        ${myResponse === 'attending' ? '<i data-lucide="check" class="h-3.5 w-3.5"></i>' : '参加'}
+                      </button>`
+                    : `<span class="text-slate-500">${myResponse === 'attending' ? '✓ 参加' : '回答締切'}</span>`}
                   ${isOfficer() ? `<button type="button" onclick="showAttendanceResponses('${calendarEvent.id}')" class="ml-auto text-indigo-300">回答一覧</button>` : ''}
                 </div>
               </div>
@@ -3771,8 +3781,7 @@
       await renderMeetingMinutes();
     }
 
-    async function saveAttendanceResponse(eventId) {
-      const response = document.getElementById(`attendance-${eventId}`).value;
+    async function saveAttendanceResponse(eventId, response) {
       if (!response) {
         const { error } = await supabaseClient.from('event_attendance').delete()
           .eq('event_id', eventId).eq('user_id', state.currentUser.id);
@@ -3995,9 +4004,10 @@
           .in('role', ['officer', 'admin'])
       ]);
       if (unitsResult.error || profilesResult.error) {
-        container.innerHTML = '<p class="text-[10px] text-rose-300">組織図を読み込めませんでした</p>';
         if (unitsResult.error) console.error('Council units lookup error:', unitsResult.error);
         if (profilesResult.error) console.error('Council profiles lookup error:', profilesResult.error);
+        const errorMessage = unitsResult.error?.message || profilesResult.error?.message || '不明なエラー';
+        container.innerHTML = `<p class="text-[10px] text-rose-300">組織図を読み込めませんでした<br><span class="mt-1 block break-words">${escapeHtml(errorMessage)}</span></p>`;
         return;
       }
       const membersByRole = profilesResult.data || [];
