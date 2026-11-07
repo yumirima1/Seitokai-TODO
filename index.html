@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>生徒会 案内箱</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/tailwind.css">
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="./assets/vendor/lucide.min.js"></script>
   <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./assets/vendor/supabase.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -86,8 +86,8 @@
     [class~="text-slate-100"] { color: #172f49 !important; }
     [class~="text-slate-200"] { color: #334b63 !important; }
     [class~="text-slate-300"] { color: #52677d !important; }
-    [class~="text-slate-400"] { color: #6b7c8f !important; }
-    [class~="text-slate-500"] { color: #8493a3 !important; }
+    [class~="text-slate-400"] { color: #5f6b78 !important; }
+    [class~="text-slate-500"] { color: #536273 !important; }
     [class~="text-indigo-300"],
     [class~="text-indigo-400"] { color: #315f7e !important; }
     [class~="text-indigo-500"] { color: #244e6c !important; }
@@ -187,7 +187,7 @@
       accent-color: var(--accent);
     }
     input::placeholder,
-    textarea::placeholder { color: #91a0af; }
+    textarea::placeholder { color: #536273; }
     input:focus,
     textarea:focus,
     select:focus {
@@ -320,47 +320,10 @@
       padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
 
-    .app-container.is-anonymous,
-    body:has(.app-container.is-anonymous) {
-      background-color: #111827;
-      color: #eef2ff;
-    }
-
-    .app-container.is-anonymous #view-main,
-    .app-container.is-anonymous #view-main > div {
-      background-color: #111827 !important;
-    }
-
-    .app-container.is-anonymous [class*="bg-slate-"] {
-      background-color: #182235 !important;
-    }
-
     #view-main,
     #view-main > *,
     #view-main [class*="bg-slate-"] {
       transition: background-color 420ms ease, color 420ms ease, border-color 420ms ease;
-    }
-
-    .app-container.is-anonymous [class*="text-slate-50"],
-    .app-container.is-anonymous [class*="text-slate-100"],
-    .app-container.is-anonymous [class*="text-slate-200"],
-    .app-container.is-anonymous [class*="text-slate-300"] {
-      color: #e5e7eb !important;
-    }
-
-    .app-container.is-anonymous [class*="text-slate-400"],
-    .app-container.is-anonymous [class*="text-slate-500"] {
-      color: #9ca3af !important;
-    }
-
-    .app-container.is-anonymous [class*="border-slate-"] {
-      border-color: #374151 !important;
-    }
-
-    .app-container.is-anonymous #view-main > header,
-    .app-container.is-anonymous #view-main > nav {
-      background-color: rgba(17, 24, 39, 0.86) !important;
-      border-color: #374151 !important;
     }
 
     .chat-mode-control {
@@ -375,7 +338,7 @@
       min-width: 4.5rem;
       padding: 0.35rem 0.65rem;
       border-radius: 13px;
-      color: #7b8797;
+      color: #536273;
       text-align: center;
       font-size: 0.7rem;
       cursor: pointer;
@@ -388,7 +351,7 @@
       box-shadow: 0 1px 5px rgba(23, 47, 73, 0.14);
     }
 
-    .app-container.is-anonymous .chat-mode-control button[aria-pressed="true"] {
+    .app-container.is-anonymous #tab-chat .chat-mode-control button[aria-pressed="true"] {
       background: #41365f;
       color: #f5eaff;
     }
@@ -500,6 +463,337 @@
         height: 100dvh;
         border-radius: 0;
       }
+    }
+
+    :root {
+      --surface: #ffffff;
+      --page: #f4f6f8;
+      --ink: #172f49;
+      --line: #e3eaf1;
+      --accent: #244e6c;
+    }
+
+    .app-container [class*="bg-slate-"]:not([class~="bg-slate-950/90"]) {
+      background-color: #f0f4f8 !important;
+    }
+
+    .app-container [class~="bg-slate-900"] { background-color: #f7f9fc !important; }
+    .app-container [class~="bg-slate-900/80"],
+    .app-container [class~="bg-slate-900/60"],
+    .app-container [class~="bg-slate-900/40"] { background-color: #f7f9fc !important; }
+    .app-container [class~="bg-slate-800/80"] { background-color: #ffffff !important; }
+    .app-container [class~="bg-slate-800/60"] { background-color: #f8fafc !important; }
+    .app-container [class~="bg-slate-700"],
+    .app-container [class~="bg-slate-600"] { background-color: #e4ebf2 !important; }
+
+    .app-container #tab-admin [class~="bg-slate-800/60"] {
+      background-color: #ffffff !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .app-container #mypage-name,
+    .app-container #mypage-class {
+      color: #172f49 !important;
+    }
+
+    #view-main > header,
+    #view-main > nav {
+      background: rgba(255, 255, 255, 0.7) !important;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    #page-track {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-content {
+      flex: 0 0 100%;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      height: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #tab-chat {
+      overflow: hidden;
+    }
+
+    .nav-btn {
+      min-height: 44px;
+      color: #536273;
+    }
+
+    #calendar-week-days,
+    #calendar-events-list {
+      touch-action: pan-y;
+    }
+
+    .calendar-swipe-in {
+      animation: calendar-swipe-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes calendar-swipe-in {
+      from { opacity: 0.45; transform: translateX(var(--calendar-slide-offset, 0.75rem)); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .nav-btn.is-active {
+      color: var(--accent) !important;
+    }
+
+    .nav-btn.is-active svg {
+      fill: currentColor;
+      transform: scale(1.12);
+    }
+
+    .nav-btn svg {
+      transition: transform 260ms cubic-bezier(0.175, 0.885, 0.32, 1.4), fill 180ms ease;
+    }
+
+    .app-container.chat-active #floating-actions {
+      display: none !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .app-container:not(.chat-active) #floating-actions:not(.hidden) {
+      display: grid;
+    }
+
+    .app-container.is-anonymous #tab-chat .chat-mode-control {
+      border-color: rgba(124, 92, 176, 0.4);
+      box-shadow: 0 0 0 2px rgba(124, 92, 176, 0.08);
+    }
+
+    .app-container.is-anonymous #tab-chat form input {
+      border-color: #7c5cb0 !important;
+      accent-color: #7c5cb0;
+    }
+
+    .clickable:active,
+    button:active,
+    [role="button"]:active,
+    a:active {
+      transform: scale(0.94);
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+    }
+
+    .ios-switch {
+      position: relative;
+      display: inline-flex;
+      width: 3rem;
+      height: 1.75rem;
+      flex: none;
+    }
+
+    .ios-switch input {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .ios-switch > span {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #94a3b8;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      transition: background-color 200ms ease;
+    }
+
+    .ios-switch > span::after {
+      content: "";
+      position: absolute;
+      top: 0.125rem;
+      left: 0.125rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: transform 200ms cubic-bezier(0.175, 0.885, 0.32, 1.4);
+    }
+
+    .ios-switch input:checked + span {
+      background: #2f9e63;
+    }
+
+    .ios-switch input:checked + span::after {
+      transform: translateX(1.25rem);
+    }
+
+    .ios-switch input:focus-visible + span {
+      outline: 3px solid rgba(81, 126, 151, 0.5);
+      outline-offset: 2px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --surface: #111827;
+      --page: #0b1220;
+      --ink: #f3f4f6;
+      --line: #334155;
+      --accent: #315f7e;
+      background: var(--page);
+    }
+
+    html[data-theme="dark"] body,
+    html[data-theme="dark"] .app-container {
+      background: var(--page);
+      color: var(--ink);
+    }
+
+    html[data-theme="dark"] #view-auth,
+    html[data-theme="dark"] #view-login,
+    html[data-theme="dark"] #view-register,
+    html[data-theme="dark"] #view-pending,
+    html[data-theme="dark"] #view-main > header,
+    html[data-theme="dark"] #view-main > nav {
+      background-color: rgba(15, 23, 42, 0.82) !important;
+      color: #f8fafc;
+    }
+
+    html[data-theme="dark"] #view-main > div,
+    html[data-theme="dark"] .app-container [class*="bg-slate-"]:not([class~="bg-slate-950/90"]) {
+      background-color: #1e293b !important;
+    }
+
+    html[data-theme="dark"] #view-main > div,
+    html[data-theme="dark"] .app-container [class~="bg-slate-900"] {
+      background-color: #111827 !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="bg-slate-800"],
+    html[data-theme="dark"] .app-container [class~="bg-slate-800/60"],
+    html[data-theme="dark"] .app-container [class~="bg-slate-800/80"],
+    html[data-theme="dark"] .app-container [class~="bg-slate-700/60"] {
+      background-color: #1e293b !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="bg-slate-900/80"],
+    html[data-theme="dark"] .app-container [class~="bg-slate-900/60"],
+    html[data-theme="dark"] .app-container [class~="bg-slate-900/40"] {
+      background-color: rgba(30, 41, 59, 0.88) !important;
+    }
+
+    html[data-theme="dark"] .app-container #tab-admin [class~="bg-slate-800/60"] {
+      background-color: #1e293b !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-slate-50"],
+    html[data-theme="dark"] .app-container [class~="text-slate-100"],
+    html[data-theme="dark"] .app-container [class~="text-slate-200"],
+    html[data-theme="dark"] .app-container [class~="text-white"] {
+      color: #f8fafc !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-slate-300"],
+    html[data-theme="dark"] .app-container [class~="text-slate-400"] {
+      color: #cbd5e1 !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-slate-500"] {
+      color: #a7b3c2 !important;
+    }
+
+    html[data-theme="dark"] .app-container .chat-mode-control button:not([aria-pressed="true"]) {
+      color: #cbd5e1;
+    }
+
+    html[data-theme="dark"] .app-container #mypage-name,
+    html[data-theme="dark"] .app-container #mypage-class {
+      color: #f8fafc !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-indigo-300"],
+    html[data-theme="dark"] .app-container [class~="text-indigo-400"],
+    html[data-theme="dark"] .app-container [class~="text-indigo-500"],
+    html[data-theme="dark"] .app-container [class~="text-indigo-600"] {
+      color: #b7d4ee !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-rose-300"],
+    html[data-theme="dark"] .app-container [class~="text-red-200"],
+    html[data-theme="dark"] .app-container [class~="text-red-300"],
+    html[data-theme="dark"] .app-container [class~="text-red-400"] {
+      color: #ffb4bc !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-amber-200"],
+    html[data-theme="dark"] .app-container [class~="text-amber-300"],
+    html[data-theme="dark"] .app-container [class~="text-amber-400"],
+    html[data-theme="dark"] .app-container [class~="text-amber-500"] {
+      color: #ffdc8c !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-emerald-300"],
+    html[data-theme="dark"] .app-container [class~="text-emerald-400"],
+    html[data-theme="dark"] .app-container [class~="text-green-400"] {
+      color: #9de3c0 !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-purple-300"],
+    html[data-theme="dark"] .app-container [class~="text-purple-400"] {
+      color: #dbc5ff !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="text-pink-500"] {
+      color: #ffc0d2 !important;
+    }
+
+    html[data-theme="dark"] .app-container [class~="border-slate-700"],
+    html[data-theme="dark"] .app-container [class~="border-slate-700/60"],
+    html[data-theme="dark"] .app-container [class~="border-slate-700/80"],
+    html[data-theme="dark"] .app-container [class~="border-slate-800"] {
+      border-color: #334155 !important;
+    }
+
+    html[data-theme="dark"] .app-container input:not([type="checkbox"]):not([type="file"]),
+    html[data-theme="dark"] .app-container textarea,
+    html[data-theme="dark"] .app-container select {
+      color: #f8fafc;
+      background-color: #1e293b;
+    }
+
+    html[data-theme="dark"] .app-container input::placeholder,
+    html[data-theme="dark"] .app-container textarea::placeholder {
+      color: #a7b3c2;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme]) { color-scheme: dark; }
+    }
+
+    @media (max-width: 360px) {
+      #page-track > .tab-content { padding-left: 0.75rem; padding-right: 0.75rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #page-track { scroll-behavior: auto; }
     }
   </style>
 </head>
@@ -962,7 +1256,7 @@
       </header>
 
       <!-- コンテンツエリア -->
-      <div class="flex-1 overflow-y-auto no-scrollbar relative bg-slate-900">
+      <div id="page-track" class="flex-1 overflow-y-auto no-scrollbar relative bg-slate-900">
 
         <!-- ================= タブ1: ホーム (フィード) ================= -->
         <div id="tab-home" class="tab-content p-4 space-y-4">
@@ -1023,7 +1317,7 @@
                 <div class="flex justify-between items-center mt-2">
                   <span id="notice-read-state" class="text-[10px] text-amber-200"></span>
                   <span id="notice-read-count" class="hidden text-[10px] text-amber-200"></span>
-                  <button id="notice-read-button" class="hidden text-[10px] underline" onclick="markNoticeRead()">既読にする</button>
+                  <button id="notice-read-button" type="button" aria-label="既読としてマーク" class="hidden rounded-full p-1.5" onclick="markNoticeRead()"><i data-lucide="check" class="h-4 w-4"></i></button>
                 </div>
               </div>
             </div>
@@ -1051,7 +1345,7 @@
         </div>
 
         <!-- ================= タブ2: 議事録・ファイル ================= -->
-        <div id="tab-files" class="tab-content hidden p-4 space-y-3">
+        <div id="tab-files" class="tab-content p-4 space-y-3">
           <div class="flex justify-between items-center mb-2">
             <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">共有資料・議事録</h3>
             <button id="document-add-button" onclick="showAddDocumentModal()" class="hidden text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
@@ -1071,7 +1365,7 @@
         </div>
 
         <!-- ================= タブ3: 投票機能 ================= -->
-        <div id="tab-vote" class="tab-content hidden p-4 space-y-4">
+        <div id="tab-vote" class="tab-content p-4 space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">進行中の決議・アンケート</h3>
             <button id="poll-create-button" onclick="showAddPollModal()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" style="display:none">
@@ -1084,15 +1378,13 @@
           </div>
         </div>
 
-        <div id="tab-calendar" class="tab-content hidden p-4 space-y-4">
+        <div id="tab-calendar" class="tab-content p-4 space-y-4">
           <div class="flex items-center justify-between">
-            <button type="button" onclick="shiftCalendarWeek(-1)" aria-label="前の週" class="p-2 -ml-2 text-slate-300"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
             <div class="flex items-center gap-2">
               <h3 id="calendar-week-label" class="text-sm font-semibold"></h3>
               <button type="button" onclick="jumpCalendarToday()" class="text-xs text-indigo-300">今日</button>
             </div>
             <div class="flex items-center">
-              <button type="button" onclick="shiftCalendarWeek(1)" aria-label="次の週" class="p-2 text-slate-300"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
               <button id="calendar-add-button" type="button" onclick="showAddCalendarEventModal()" aria-label="予定を追加" class="hidden p-2 text-indigo-300"><i data-lucide="plus" class="w-5 h-5"></i></button>
             </div>
           </div>
@@ -1116,7 +1408,7 @@
         </div>
 
         <!-- ================= タブ4: チャット (DM風) ================= -->
-        <div id="tab-chat" class="tab-content hidden flex flex-col h-full bg-slate-900">
+        <div id="tab-chat" class="tab-content flex flex-col h-full bg-slate-900">
           <!-- メッセージ表示領域 -->
           <div id="chat-messages-container" class="flex-1 p-4 space-y-3 overflow-y-auto">
             <!-- JavaScriptで動的生成 -->
@@ -1142,7 +1434,7 @@
         </div>
 
         <!-- ================= タブ5: マイページ / 管理者コントロールパネル ================= -->
-        <div id="tab-admin" class="tab-content hidden p-4 space-y-4">
+        <div id="tab-admin" class="tab-content p-4 space-y-4">
           <div class="flex justify-between items-center pb-2 border-b border-slate-800">
             <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">アカウント & システム管理</h3>
             <span id="user-role-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-semibold">一般生徒</span>
@@ -1172,6 +1464,24 @@
               <label class="flex items-center gap-2"><input type="checkbox" data-notification-preference="tasks_enabled" checked>タスク</label>
             </div>
             <button type="button" onclick="saveNotificationPreferences()" class="rounded-lg bg-indigo-600 px-3 py-2 text-[10px] font-semibold text-white">設定を保存</button>
+          </section>
+
+          <section class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
+            <h3 class="text-xs font-bold text-slate-200">表示・通知</h3>
+            <label class="flex items-center justify-between gap-3 text-xs text-slate-300">
+              <span>ダークモード</span>
+              <span class="ios-switch">
+                <input id="theme-toggle" type="checkbox" role="switch" aria-label="ダークモード" onchange="setTheme(this.checked ? 'dark' : 'light')">
+                <span aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="flex items-center justify-between gap-3 text-xs text-slate-300">
+              <span>Webプッシュ通知</span>
+              <span class="ios-switch">
+                <input id="web-push-toggle" type="checkbox" role="switch" aria-label="Webプッシュ通知" onchange="toggleWebPush(this)">
+                <span aria-hidden="true"></span>
+              </span>
+            </label>
           </section>
 
           <section class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 space-y-3">
@@ -1252,30 +1562,24 @@
       </div>
 
       <!-- 下部ナビゲーションバー（5つのタブ） -->
-      <nav class="h-14 bg-slate-900 border-t border-slate-800 grid grid-cols-6 shrink-0 text-slate-400">
-        <button onclick="switchTab('tab-home')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 text-indigo-400" id="btn-tab-home">
+      <nav class="h-14 bg-slate-900 border-t border-slate-800 grid grid-cols-6 shrink-0 text-slate-400" aria-label="メインナビゲーション">
+        <button type="button" aria-label="ホーム" aria-current="page" onclick="switchTab('tab-home')" class="nav-btn flex items-center justify-center" id="btn-tab-home">
           <i data-lucide="home" class="w-5 h-5"></i>
-          <span class="text-[9px]">ホーム</span>
         </button>
-        <button onclick="switchTab('tab-files')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-files">
+        <button type="button" aria-label="資料" onclick="switchTab('tab-files')" class="nav-btn flex items-center justify-center hover:text-slate-200" id="btn-tab-files">
           <i data-lucide="folder" class="w-5 h-5"></i>
-          <span class="text-[9px]">資料</span>
         </button>
-        <button onclick="switchTab('tab-vote')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-vote">
+        <button type="button" aria-label="投票" onclick="switchTab('tab-vote')" class="nav-btn flex items-center justify-center hover:text-slate-200" id="btn-tab-vote">
           <i data-lucide="vote" class="w-5 h-5"></i>
-          <span class="text-[9px]">投票</span>
         </button>
-        <button onclick="switchTab('tab-calendar')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-calendar">
+        <button type="button" aria-label="予定" onclick="switchTab('tab-calendar')" class="nav-btn flex items-center justify-center hover:text-slate-200" id="btn-tab-calendar">
           <i data-lucide="calendar-days" class="w-5 h-5"></i>
-          <span class="text-[9px]">予定</span>
         </button>
-        <button onclick="switchTab('tab-chat')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-chat">
+        <button type="button" aria-label="チャット" onclick="switchTab('tab-chat')" class="nav-btn flex items-center justify-center hover:text-slate-200" id="btn-tab-chat">
           <i data-lucide="message-circle" class="w-5 h-5"></i>
-          <span class="text-[9px]">チャット</span>
         </button>
-        <button onclick="switchTab('tab-admin')" class="nav-btn flex flex-col items-center justify-center space-y-0.5 hover:text-slate-200" id="btn-tab-admin">
+        <button type="button" aria-label="マイページ" onclick="switchTab('tab-admin')" class="nav-btn flex items-center justify-center hover:text-slate-200" id="btn-tab-admin">
           <i data-lucide="user" class="w-5 h-5"></i>
-          <span class="text-[9px]">マイページ</span>
         </button>
       </nav>
 
@@ -1319,7 +1623,11 @@
     let taskShowArchived = false;
     let notificationLimit = 30;
     let cachedDocuments = [];
+    let activeTabId = 'tab-home';
+    const PUSH_VAPID_PUBLIC_KEY = '';
     const avatarUrlCache = new Map();
+    const avatarFileByInput = new WeakMap();
+    const compressedAvatarFiles = new WeakSet();
 
     // ローカル状態管理用初期状態（Supabase未設定時のフォールバック用）
     let state = {
@@ -1341,16 +1649,96 @@
       }
     }
 
-    function previewAvatarFile(input, previewId) {
+    async function compressAvatarImage(file) {
+      if (compressedAvatarFiles.has(file)) return file;
+      if (file.size > 5 * 1024 * 1024) throw new Error('画像は5MB以下にしてください');
+
+      let drawable;
+      let objectUrl = null;
+      if ('createImageBitmap' in window) {
+        try {
+          drawable = await createImageBitmap(file);
+        } catch {
+          drawable = null;
+        }
+      }
+      if (!drawable) {
+        objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        try {
+          await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = reject;
+            image.src = objectUrl;
+          });
+        } catch {
+          URL.revokeObjectURL(objectUrl);
+          throw new Error('この画像形式を読み込めません。JPEG、PNG、WebP画像を選択してください');
+        }
+        drawable = image;
+      }
+
+      const ratio = Math.min(1, 400 / Math.max(drawable.width, drawable.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(drawable.width * ratio));
+      canvas.height = Math.max(1, Math.round(drawable.height * ratio));
+      const context = canvas.getContext('2d');
+      if (!context) {
+        if ('close' in drawable) drawable.close();
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        throw new Error('画像を圧縮できませんでした');
+      }
+      context.drawImage(drawable, 0, 0, canvas.width, canvas.height);
+      if ('close' in drawable) drawable.close();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
+      if (!blob) throw new Error('画像を圧縮できませんでした');
+      const name = file.name.replace(/\.[^.]+$/, '') || 'avatar';
+      const compressed = new File([blob], `${name}.jpg`, {
+        type: 'image/jpeg',
+        lastModified: Date.now()
+      });
+      compressedAvatarFiles.add(compressed);
+      return compressed;
+    }
+
+    async function selectedAvatarFile(input) {
+      const file = input.files?.[0];
+      if (!file) return null;
+      const compressed = avatarFileByInput.get(input);
+      if (compressed && compressed.name.startsWith((file.name.replace(/\.[^.]+$/, '') || 'avatar') + '.')) {
+        return compressed;
+      }
+      return compressAvatarImage(file);
+    }
+
+    async function previewAvatarFile(input, previewId) {
       const preview = document.getElementById(previewId);
       if (preview.dataset.previewUrl) URL.revokeObjectURL(preview.dataset.previewUrl);
+      delete preview.dataset.previewUrl;
       const file = input.files[0];
+      const requestId = Number(input.dataset.previewRequest || 0) + 1;
+      input.dataset.previewRequest = String(requestId);
+      avatarFileByInput.delete(input);
       if (!file) {
         preview.removeAttribute('src');
         delete preview.dataset.previewUrl;
         return;
       }
-      const previewUrl = URL.createObjectURL(file);
+      let compressed;
+      try {
+        compressed = await compressAvatarImage(file);
+      } catch (error) {
+        if (input.dataset.previewRequest !== String(requestId)) return;
+        showToast(error.message);
+        input.value = '';
+        preview.removeAttribute('src');
+        return;
+      }
+      if (input.dataset.previewRequest !== String(requestId)) return;
+      avatarFileByInput.set(input, compressed);
+      const previewUrl = URL.createObjectURL(compressed);
       preview.dataset.previewUrl = previewUrl;
       preview.src = previewUrl;
     }
@@ -1385,13 +1773,19 @@
       const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
       if (!supportedTypes.includes(file.type)) return 'JPG、PNG、WebP、GIF、HEIC形式の画像を選択してください';
       if (file.size > 5 * 1024 * 1024) return '画像は5MB以下にしてください';
+      let compressedFile;
+      try {
+        compressedFile = await compressAvatarImage(file);
+      } catch (error) {
+        return error.message;
+      }
 
       const profile = state.currentUser;
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const safeName = compressedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const path = `${profile.id}/${crypto.randomUUID()}-${safeName}`;
       const { error: uploadError } = await supabaseClient.storage
         .from('profile-avatars')
-        .upload(path, file, { contentType: file.type, upsert: false });
+        .upload(path, compressedFile, { contentType: 'image/jpeg', upsert: false });
       if (uploadError) return `画像をアップロードできませんでした: ${uploadError.message}`;
 
       const { data: updatedProfile, error: updateError } = await supabaseClient.from('profiles')
@@ -1430,6 +1824,120 @@
       setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
+    function setTheme(theme, persist = true) {
+      if (!['light', 'dark'].includes(theme)) return;
+      document.documentElement.dataset.theme = theme;
+      const toggle = document.getElementById('theme-toggle');
+      if (toggle) toggle.checked = theme === 'dark';
+      if (persist) {
+        try {
+          localStorage.setItem('seitokai-theme', theme);
+        } catch (error) {
+          console.error('Theme preference save error:', error);
+          showToast('テーマは切り替わりましたが、設定を保存できませんでした');
+        }
+      }
+    }
+
+    function initializeTheme() {
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem('seitokai-theme');
+      } catch (error) {
+        console.error('Theme preference lookup error:', error);
+      }
+      if (!['light', 'dark'].includes(savedTheme)) savedTheme = null;
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setTheme(savedTheme || (mediaQuery.matches ? 'dark' : 'light'), false);
+      const onSystemThemeChange = event => {
+        let preference;
+        try {
+          preference = localStorage.getItem('seitokai-theme');
+        } catch (error) {
+          console.error('Theme preference lookup error:', error);
+        }
+        if (!preference) setTheme(event.matches ? 'dark' : 'light', false);
+      };
+      if (mediaQuery.addEventListener) mediaQuery.addEventListener('change', onSystemThemeChange);
+      else mediaQuery.addListener(onSystemThemeChange);
+    }
+
+    function decodeApplicationServerKey(value) {
+      const padding = '='.repeat((4 - value.length % 4) % 4);
+      const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+      return Uint8Array.from(atob(base64), character => character.charCodeAt(0));
+    }
+
+    async function toggleWebPush(toggle) {
+      if (!toggle.checked) {
+        try {
+          const registration = await navigator.serviceWorker?.getRegistration();
+          const subscription = await registration?.pushManager.getSubscription();
+          if (subscription && !(await subscription.unsubscribe())) {
+            toggle.checked = true;
+            return showToast('通知を解除できませんでした');
+          }
+          localStorage.removeItem('seitokai-web-push-enabled');
+        } catch (error) {
+          toggle.checked = true;
+          console.error('Push unsubscribe error:', error);
+          return showToast('通知を解除できませんでした');
+        }
+        return;
+      }
+
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        toggle.checked = false;
+        return showToast('このブラウザーはWebプッシュ通知に対応していません');
+      }
+
+      try {
+        const permission = Notification.permission === 'default'
+          ? await Notification.requestPermission()
+          : Notification.permission;
+        if (permission !== 'granted') {
+          toggle.checked = false;
+          return showToast(permission === 'denied' ? 'ブラウザー設定で通知を許可してください' : '通知は有効になりませんでした');
+        }
+
+        const registration = await navigator.serviceWorker.register('./service-worker.js');
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          if (!PUSH_VAPID_PUBLIC_KEY) {
+            toggle.checked = false;
+            return showToast('通知配信にはプッシュ公開鍵の設定が必要です');
+          }
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: decodeApplicationServerKey(PUSH_VAPID_PUBLIC_KEY)
+          });
+        }
+        localStorage.setItem('seitokai-web-push-enabled', 'true');
+        toggle.checked = true;
+        console.info('Web Push subscription is ready.');
+        showToast('この端末で通知を受け取る準備ができました');
+      } catch (error) {
+        toggle.checked = false;
+        console.error('Web Push setup error:', error);
+        showToast(`通知を設定できませんでした: ${error.message}`);
+      }
+    }
+
+    async function initializeWebPushControl() {
+      const toggle = document.getElementById('web-push-toggle');
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        toggle.disabled = true;
+        return;
+      }
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration?.pushManager.getSubscription();
+        toggle.checked = Boolean(subscription) && localStorage.getItem('seitokai-web-push-enabled') === 'true';
+      } catch (error) {
+        console.error('Web Push status lookup error:', error);
+      }
+    }
+
     function resetIdleLogoutTimer() {
       if (!state.currentUser) return;
       clearTimeout(idleLogoutTimer);
@@ -1453,7 +1961,7 @@
         if (!state.currentUser) return;
         if (!(await verifyCurrentAccess())) return;
         renderNotifications();
-        if (!document.getElementById('tab-home').classList.contains('hidden')) {
+        if (activeTabId === 'tab-home') {
           if (!document.getElementById('home-dashboard-view').classList.contains('hidden')) renderPosts();
           if (!document.getElementById('task-manager-view').classList.contains('hidden')
             && Date.now() - lastTaskRefreshAt > 30000
@@ -1462,10 +1970,10 @@
             renderTaskManager();
           }
         }
-        if (!document.getElementById('tab-files').classList.contains('hidden')) renderDocuments();
-        if (!document.getElementById('tab-vote').classList.contains('hidden')) renderPolls();
-        if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
-        if (!document.getElementById('tab-chat').classList.contains('hidden')) renderChat();
+        if (activeTabId === 'tab-files') renderDocuments();
+        if (activeTabId === 'tab-vote') renderPolls();
+        if (activeTabId === 'tab-calendar') renderCalendar();
+        if (activeTabId === 'tab-chat') renderChat();
       }, 5000);
     }
 
@@ -1598,7 +2106,12 @@
       const grade = document.getElementById('reg-grade').value;
       const className = document.getElementById('reg-class').value.trim();
       const password = document.getElementById('reg-pass').value;
-      pendingAvatarFile = document.getElementById('reg-avatar-file').files[0] || null;
+      try {
+        pendingAvatarFile = await selectedAvatarFile(document.getElementById('reg-avatar-file'));
+      } catch (error) {
+        showToast(error.message);
+        return;
+      }
 
       const { error } = await supabaseClient.auth.signUp({
         email,
@@ -1631,7 +2144,7 @@
 
       if (error) {
         const messages = {
-          email_not_confirmed: 'メールアドレスの確認が完了していません。確認メールのリンクを開いてください。',
+          email_not_confirmed: 'Supabase Authでメール確認が完了していません。これはアプリ内の管理者承認とは別の確認です。対象アカウントのメールアドレスが正しいか、最新の確認メールのリンクを開いたかをご確認ください。解決しない場合はSupabaseのAuthentication > Usersで対象アカウントの確認状態を確認してください。',
           invalid_credentials: 'メールアドレスまたはパスワードが一致しません。',
           user_banned: 'このアカウントは利用できません。管理者にお問い合わせください。',
           too_many_requests: '試行回数が多すぎます。しばらく待ってから再度お試しください。'
@@ -1745,14 +2258,26 @@
       switchTab('tab-home');
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-      document.getElementById(tabId).classList.remove('hidden');
+    function updateActiveTab(tabId) {
+      activeTabId = tabId;
+      document.querySelectorAll('.nav-btn').forEach(button => {
+        const isActive = button.id === `btn-${tabId}`;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-current', isActive ? 'page' : 'false');
+      });
+      const app = document.querySelector('.app-container');
+      app.classList.toggle('chat-active', tabId === 'tab-chat');
+      const actions = document.getElementById('floating-actions');
+      if (tabId === 'tab-chat') setFloatingActionsOpen(false);
+      actions.classList.toggle('hidden', tabId === 'tab-chat');
+    }
 
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.replace('text-indigo-400', 'text-slate-400'));
-      const activeBtn = document.getElementById(`btn-${tabId}`);
-      if (activeBtn) activeBtn.classList.replace('text-slate-400', 'text-indigo-400');
-      document.getElementById('floating-actions').classList.remove('hidden');
+    function switchTab(tabId) {
+      const target = document.getElementById(tabId);
+      const track = document.getElementById('page-track');
+      if (!target || !target.classList.contains('tab-content')) return;
+      updateActiveTab(tabId);
+      track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
     }
 
     function setChatAnonMode(isAnonymous) {
@@ -1787,8 +2312,38 @@
     function setupMobileInteractions() {
       const trigger = document.getElementById('floating-actions-trigger');
       const actions = document.getElementById('floating-actions');
+      const pageTrack = document.getElementById('page-track');
       let longPressTimer = null;
       let longPressTriggered = false;
+      let scrollFrame = 0;
+
+      pageTrack.addEventListener('scroll', () => {
+        if (scrollFrame) cancelAnimationFrame(scrollFrame);
+        scrollFrame = requestAnimationFrame(() => {
+          const tabs = [...pageTrack.querySelectorAll('.tab-content')];
+          const index = Math.max(0, Math.min(tabs.length - 1, Math.round(pageTrack.scrollLeft / pageTrack.clientWidth)));
+          updateActiveTab(tabs[index].id);
+          scrollFrame = 0;
+        });
+      }, { passive: true });
+
+      let calendarSwipeStart = null;
+      const calendarSwipeArea = document.getElementById('tab-calendar');
+      calendarSwipeArea.addEventListener('pointerdown', event => {
+        if (!event.target.closest('#calendar-week-days, #calendar-events-list')) return;
+        calendarSwipeStart = { x: event.clientX, y: event.clientY };
+      });
+      calendarSwipeArea.addEventListener('pointerup', event => {
+        if (!calendarSwipeStart) return;
+        const deltaX = event.clientX - calendarSwipeStart.x;
+        const deltaY = event.clientY - calendarSwipeStart.y;
+        calendarSwipeStart = null;
+        if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
+        shiftCalendarWeek(deltaX < 0 ? 1 : -1);
+      });
+      calendarSwipeArea.addEventListener('pointercancel', () => {
+        calendarSwipeStart = null;
+      });
 
       document.querySelectorAll('.app-container form label').forEach(label => {
         const labelCopy = label.cloneNode(true);
@@ -2361,6 +2916,12 @@
 
     async function saveProfile(event) {
       event.preventDefault();
+      let avatarFile;
+      try {
+        avatarFile = await selectedAvatarFile(document.getElementById('profile-edit-avatar-file'));
+      } catch (error) {
+        return showToast(error.message);
+      }
       const updates = {
         full_name: document.getElementById('profile-edit-name').value.trim(),
         class_name: document.getElementById('profile-edit-class').value.trim()
@@ -2373,7 +2934,6 @@
       if (error) return showToast(`プロフィールを保存できませんでした: ${error.message}`);
 
       state.currentUser = profile;
-      const avatarFile = document.getElementById('profile-edit-avatar-file').files[0];
       const avatarError = await uploadProfileAvatar(avatarFile);
       document.getElementById('modal-edit-profile').classList.add('hidden');
       await addAuditLog('プロフィールを更新しました', 'profile', profile.id);
@@ -3010,6 +3570,13 @@
 
     function shiftCalendarWeek(direction) {
       calendarSelectedDate.setDate(calendarSelectedDate.getDate() + direction * 7);
+      ['calendar-week-label', 'calendar-week-days', 'calendar-events-list'].forEach(id => {
+        const element = document.getElementById(id);
+        element.style.setProperty('--calendar-slide-offset', direction > 0 ? '0.75rem' : '-0.75rem');
+        element.classList.remove('calendar-swipe-in');
+        void element.offsetWidth;
+        element.classList.add('calendar-swipe-in');
+      });
       renderCalendar();
     }
 
@@ -3977,13 +4544,15 @@
     }
 
     window.onload = async function() {
+      initializeTheme();
       initSupabase();
       lucide.createIcons();
       setupMobileInteractions();
+      await initializeWebPushControl();
       await restoreSession();
       if (!state.currentUser && !document.getElementById('view-pending').classList.contains('hidden')) return;
       if (!state.currentUser) showAuthSelection();
     };
   </script>
 </body>
-</html>
+</html>ｓｑ
