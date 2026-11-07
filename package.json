@@ -1,0 +1,16 @@
+{
+  "name": "seitokai-todo",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:css && npm run build:vendor",
+    "build:css": "tailwindcss -i ./tailwind.input.css -o ./assets/tailwind.css --content ./index.html --minify",
+    "build:vendor": "mkdir -p assets/vendor && cp node_modules/lucide/dist/umd/lucide.min.js assets/vendor/lucide.min.js && cp node_modules/@supabase/supabase-js/dist/umd/supabase.js assets/vendor/supabase.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "lucide": "1.70.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
