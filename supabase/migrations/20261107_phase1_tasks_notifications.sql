@@ -702,12 +702,14 @@ alter table public.council_unit_members enable row level security;
 alter table public.council_activities enable row level security;
 alter table public.council_handovers enable row level security;
 
+drop policy if exists event_attendance_read on public.event_attendance;
 create policy event_attendance_read on public.event_attendance for select to authenticated
 using (
   public.app_is_approved() and (
     user_id = (select auth.uid()) or public.app_is_officer()
   )
 );
+drop policy if exists event_attendance_insert on public.event_attendance;
 create policy event_attendance_insert on public.event_attendance for insert to authenticated
 with check (
   user_id = (select auth.uid()) and public.app_is_approved()
@@ -717,6 +719,7 @@ with check (
       and (e.response_due_at is null or e.response_due_at > now())
   )
 );
+drop policy if exists event_attendance_update on public.event_attendance;
 create policy event_attendance_update on public.event_attendance for update to authenticated
 using (user_id = (select auth.uid()) and public.app_is_approved())
 with check (
@@ -727,17 +730,22 @@ with check (
       and (e.response_due_at is null or e.response_due_at > now())
   )
 );
+drop policy if exists event_attendance_delete on public.event_attendance;
 create policy event_attendance_delete on public.event_attendance for delete to authenticated
 using (user_id = (select auth.uid()) and public.app_is_approved());
 
+drop policy if exists meeting_minutes_read on public.meeting_minutes;
 create policy meeting_minutes_read on public.meeting_minutes for select to authenticated
 using (public.app_is_officer() and (deleted_at is null or public.app_is_admin()));
+drop policy if exists meeting_minutes_create on public.meeting_minutes;
 create policy meeting_minutes_create on public.meeting_minutes for insert to authenticated
 with check (public.app_is_officer() and created_by = (select auth.uid()));
+drop policy if exists meeting_minutes_update on public.meeting_minutes;
 create policy meeting_minutes_update on public.meeting_minutes for update to authenticated
 using (public.app_is_officer())
 with check (public.app_is_officer());
 
+drop policy if exists document_favorites_own on public.document_favorites;
 create policy document_favorites_own on public.document_favorites for all to authenticated
 using (user_id = (select auth.uid()) and public.app_is_approved())
 with check (
@@ -750,6 +758,7 @@ with check (
   )
 );
 
+drop policy if exists document_views_own on public.document_views;
 create policy document_views_own on public.document_views for all to authenticated
 using (user_id = (select auth.uid()) and public.app_is_approved())
 with check (
@@ -762,6 +771,7 @@ with check (
   )
 );
 
+drop policy if exists document_revisions_read on public.document_revisions;
 create policy document_revisions_read on public.document_revisions for select to authenticated
 using (
   public.app_is_approved() and exists (
@@ -775,19 +785,25 @@ using (
   )
 );
 
+drop policy if exists council_units_read on public.council_units;
 create policy council_units_read on public.council_units for select to authenticated
 using (public.app_is_approved() and (deleted_at is null or public.app_is_admin()));
+drop policy if exists council_units_manage on public.council_units;
 create policy council_units_manage on public.council_units for all to authenticated
 using (public.app_is_admin()) with check (public.app_is_admin());
+drop policy if exists council_unit_members_read on public.council_unit_members;
 create policy council_unit_members_read on public.council_unit_members for select to authenticated
 using (public.app_is_approved() and exists (
   select 1 from public.council_units u where u.id = unit_id and u.deleted_at is null
 ));
+drop policy if exists council_unit_members_manage on public.council_unit_members;
 create policy council_unit_members_manage on public.council_unit_members for all to authenticated
 using (public.app_is_admin()) with check (public.app_is_admin());
 
+drop policy if exists council_activities_read on public.council_activities;
 create policy council_activities_read on public.council_activities for select to authenticated
 using (public.app_is_approved() and (deleted_at is null or public.app_is_admin()));
+drop policy if exists council_activities_create on public.council_activities;
 create policy council_activities_create on public.council_activities for insert to authenticated
 with check (
   public.app_is_officer() and created_by = (select auth.uid())
@@ -800,6 +816,7 @@ with check (
         or (d.access_role = 'admin' and public.app_is_admin()))
   ))
 );
+drop policy if exists council_activities_update on public.council_activities;
 create policy council_activities_update on public.council_activities for update to authenticated
 using (public.app_is_admin() or created_by = (select auth.uid()))
 with check (
@@ -814,8 +831,10 @@ with check (
   ))
 );
 
+drop policy if exists council_handovers_read on public.council_handovers;
 create policy council_handovers_read on public.council_handovers for select to authenticated
 using (public.app_is_admin());
+drop policy if exists council_handovers_manage on public.council_handovers;
 create policy council_handovers_manage on public.council_handovers for all to authenticated
 using (public.app_is_admin()) with check (public.app_is_admin() and created_by = (select auth.uid()));
 
