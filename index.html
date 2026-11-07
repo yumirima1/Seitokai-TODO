@@ -301,9 +301,7 @@
     button:active,
     [role="button"]:active,
     a:active,
-    label:active,
-    summary:active,
-    input[type="checkbox"]:active {
+    summary:active {
       transform: scale(0.94);
     }
 
@@ -319,7 +317,7 @@
     #view-main,
     #view-main > *,
     #view-main [class*="bg-slate-"] {
-      transition: background-color 420ms ease, color 420ms ease, border-color 420ms ease;
+      transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
     }
 
     .chat-mode-control {
@@ -605,6 +603,9 @@
       width: 3rem;
       height: 1.75rem;
       flex: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .ios-switch input {
@@ -616,6 +617,15 @@
       margin: 0;
       opacity: 0;
       cursor: pointer;
+      pointer-events: auto;
+      transform: none !important;
+    }
+
+    .ios-switch:active,
+    .ios-switch input:active,
+    #tab-admin label:active,
+    #theme-select:active {
+      transform: none !important;
     }
 
     .ios-switch > span {
@@ -646,6 +656,15 @@
 
     .ios-switch input:checked + span::after {
       transform: translateX(1.25rem);
+    }
+
+    .ios-switch input:disabled {
+      cursor: wait;
+    }
+
+    .ios-switch input:disabled + span {
+      cursor: wait;
+      opacity: 0.7;
     }
 
     .ios-switch input:focus-visible + span {
@@ -1935,6 +1954,18 @@
     }
 
     async function toggleWebPush(toggle) {
+      if (toggle.disabled) return;
+      toggle.disabled = true;
+      toggle.setAttribute('aria-busy', 'true');
+      try {
+        await configureWebPush(toggle);
+      } finally {
+        toggle.disabled = false;
+        toggle.removeAttribute('aria-busy');
+      }
+    }
+
+    async function configureWebPush(toggle) {
       if (!toggle.checked) {
         let subscription = null;
         try {
